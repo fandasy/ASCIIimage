@@ -2,9 +2,13 @@ Hi reader, this is my package to convert local or web image to ASCII character i
 
 Supports formats: png, jpg, jpeg, webp 
 
+```
+go get github.com/fandasy/ASCIIImage
+```
+
 Functions
 ---
-- GetFromFile(path string, compressionPercentage float64, maxWidth int, maxHeight int, chars string) (*image.RGBA, error)
+- GetFromFile (string, float64, int, int, string) (*image.RGBA, error)
 ```
 GetFromFile takes
  path to the image,
@@ -19,7 +23,7 @@ GetFromFile takes
  and other error
 ```
 
-- GetFromWebsite(ctx context.Context, url string, compressionPercentage float64, maxWidth int, maxHeight int, chars string) (*image.RGBA, error)
+- GetFromWebsite(context.Context, string, float64, int, int, string) (*image.RGBA, error)
 ```
 GetFromWebsite takes
  context,
