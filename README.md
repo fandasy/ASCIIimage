@@ -73,6 +73,7 @@ asciiImage, err := asciiimage.GetFromWebsite(
 )
 if err != nil {
 	log.Println(err)
+	return
 }
 
 file, err := os.Create("example.jpg")
