@@ -44,7 +44,7 @@ func GetFromFile(path string, compressionPercentage float64, maxWidth int, maxHe
 	const op = "ascii_image.GetFromFile"
 
 	ext := filepath.Ext(path)
-	if !validate.ContentType(ext, ".png", ".jpg", ".jpeg", "webp") {
+	if !validate.ContentType(ext, ".png", ".jpg", ".jpeg", ".webp") {
 		return nil, fmt.Errorf("%s: %w: %s", op, ErrIncorrectFormat, ext)
 	}
 
