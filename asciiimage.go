@@ -19,7 +19,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/fandasy/ASCIIImage/validate"
+	"github.com/fandasy/ASCIIimage/validate"
 	"github.com/nfnt/resize"
 )
 

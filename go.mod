@@ -1,4 +1,4 @@
-module github.com/fandasy/ASCIIImage
+module github.com/fandasy/ASCIIimage
 
 go 1.23.0
 
