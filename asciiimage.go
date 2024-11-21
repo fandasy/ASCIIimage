@@ -12,9 +12,7 @@ import (
 	"image/color"
 	"image/draw"
 	"image/jpeg"
-	_ "image/jpeg"
 	"image/png"
-	_ "image/png"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -179,8 +177,7 @@ func generateASCIIImage(img image.Image, chars string) *image.RGBA {
 	asciiWidth := bounds.Max.X
 	asciiHeight := bounds.Max.Y
 
-	// Создаем новое изображение
-	asciiImg := image.NewRGBA(image.Rect(0, 0, asciiWidth*10, asciiHeight*10)) // Увеличиваем размер для текста
+	asciiImg := image.NewRGBA(image.Rect(0, 0, asciiWidth*10, asciiHeight*10))
 
 	draw.Draw(asciiImg, asciiImg.Bounds(), &image.Uniform{color.White}, image.Point{}, draw.Src)
 
@@ -189,8 +186,7 @@ func generateASCIIImage(img image.Image, chars string) *image.RGBA {
 			c := img.At(x, y)
 			char := getCharFromBrightness(c, chars)
 
-			// Рисуем символ на изображении
-			point := fixed.Point26_6{X: fixed.I(x * 10), Y: fixed.I(y * 10)} // Смещение для текста
+			point := fixed.Point26_6{X: fixed.I(x * 10), Y: fixed.I(y * 10)}
 			d := &font.Drawer{
 				Dst:  asciiImg,
 				Src:  image.NewUniform(color.Black),
@@ -207,10 +203,12 @@ func generateASCIIImage(img image.Image, chars string) *image.RGBA {
 func getCharFromBrightness(c color.Color, chars string) string {
 	r, g, b, _ := c.RGBA()
 
-	avg := (r + g + b) >> 8 // сдвиг вправо для получения 8-битного значения
-	brightness := float64(avg) / 255.0
+	r = r >> 8
+	g = g >> 8
+	b = b >> 8
 
-	idx := int(brightness * float64(len(chars)-1))
+	brightness := (r + g + b) / 3
+	idx := int(float64(brightness) / 255 * float64(len(chars)))
 
 	if idx < 0 {
 		idx = 0
