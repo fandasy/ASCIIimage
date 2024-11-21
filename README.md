@@ -66,10 +66,10 @@ Example
 asciiImage, err := asciiimage.GetFromWebsite(
 	context.TODO(),
 	"https://ir.ozone.ru/s3/multimedia-7/c1000/6755179327.jpg",
-	0,
-	0,
-	0,
-	"",
+	0,  
+	0,  // <- default value is activated
+	0,  // <- |
+	"", // <- /
 )
 if err != nil {
 	log.Println(err)
