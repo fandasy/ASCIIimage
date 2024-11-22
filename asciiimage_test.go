@@ -9,15 +9,15 @@ import (
 )
 
 const (
-	validPath_1 = "example/8a525c04a725d2d65bc5de411715f428.jpg"
-	validPath_2 = "example/c80ece0becfb487ad70b0f379d4bfb78.jpg"
+	validPath_1 = "example/valid-img-1.jpg"
+	validPath_2 = "example/valid-img-2.jpg"
 
-	validUrl_1 = "https://ir.ozone.ru/s3/multimedia-7/c1000/6755179327.jpg"
-	validUrl_2 = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRVNyUgiDjGP2BXtaLCP48USXG0l9sttdYNgw&s"
-	validUrl_3 = "https://a.storyblok.com/f/178900/1000x563/8c02cd867d/2bcc3020d88ac2cfc03709aca149d5a21681300939_main.jpg/m/filters:quality(95)format(webp)"
+	validUrl_1 = "https://img1.akspic.ru/previews/1/6/0/6/7/176061/176061-yablochnyj_pejzazh-yabloko-illustracia-prirodnyj_landshaft-purpur-500x.jpg"
+	validUrl_2 = "https://www.youloveit.ru/uploads/gallery/main/162/pikachu.png"
+	validUrl_3 = "https://savvy.co.il/wp-content/themes/thesis/images/4.webp"
 
 	maxWidth  = 3000 // 30000px
-	maxHeight = 1500 // 15000px
+	maxHeight = 3000 // 30000px
 
 	chars = "@%#*+=:~-. "
 )
