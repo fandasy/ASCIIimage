@@ -4,10 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"golang.org/x/image/font"
-	"golang.org/x/image/font/basicfont"
-	"golang.org/x/image/math/fixed"
-	"golang.org/x/image/webp"
 	"image"
 	"image/color"
 	"image/draw"
@@ -17,8 +13,25 @@ import (
 	"os"
 	"path/filepath"
 
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/basicfont"
+	"golang.org/x/image/math/fixed"
+	"golang.org/x/image/webp"
+
+	"github.com/fandasy/ASCIIimage/resize"
 	"github.com/fandasy/ASCIIimage/validate"
-	"github.com/nfnt/resize"
+)
+
+const (
+	// 1 	 = 10px
+	// 10000 = 100000px
+
+	maxWidth  uint = 10000
+	maxHeight uint = 10000
+
+	// dark ... light
+
+	defaultChars = "@%#*+=:~-. "
 )
 
 var (
@@ -28,27 +41,29 @@ var (
 	ErrIncorrectUrl    = errors.New("incorrect url")
 )
 
-// GetFromFile
-// takes the path to the image,
-// compression percentage (0.0 - 1.0),
-// maximum width (1 = 10px),
-// maximum height (1 = 10px),
-// chars that will be used to generate (dark - light)
+type Options struct {
+	Compress  uint8
+	MaxWidth  uint
+	MaxHeight uint
+	Chars     string
+}
+
+// GetFromFile reads an image from a file and converts it to an ASCII art image.
 //
 // Possible output errors:
 // ErrFileNotFound,
 // ErrIncorrectFormat
-func GetFromFile(path string, compressionPercentage float64, maxWidth int, maxHeight int, chars string) (*image.RGBA, error) {
-	const op = "ascii_image.GetFromFile"
+func GetFromFile(ctx context.Context, path string, opts Options) (*image.RGBA, error) {
+	const fn = "ascii_image.GetFromFile"
 
 	ext := filepath.Ext(path)
 	if !validate.ContentType(ext, ".png", ".jpg", ".jpeg", ".webp") {
-		return nil, fmt.Errorf("%s: %w: %s", op, ErrIncorrectFormat, ext)
+		return nil, fmt.Errorf("%s: %w: %s", fn, ErrIncorrectFormat, ext)
 	}
 
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, ErrFileNotFound)
+		return nil, fmt.Errorf("%s: %w", fn, ErrFileNotFound)
 	}
 
 	defer file.Close()
@@ -65,26 +80,20 @@ func GetFromFile(path string, compressionPercentage float64, maxWidth int, maxHe
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("%s: %w", fn, err)
 	}
 
-	return getASCIIImage(img, compressionPercentage, maxWidth, maxHeight, chars), nil
+	return getASCIIImage(ctx, img, opts)
 }
 
-// GetFromWebsite
-// takes context,
-// image url,
-// compression percentage (0.0 - 1.0),
-// maximum width (1 = 10px),
-// maximum height (1 = 10px),
-// chars that will be used to generate (dark - light)
+// GetFromWebsite downloads an image from a URL and converts it to an ASCII art image.
 //
 // Possible output errors:
 // ErrIncorrectUrl,
 // ErrPageNotFound,
 // ErrIncorrectFormat
-func GetFromWebsite(ctx context.Context, url string, compressionPercentage float64, maxWidth int, maxHeight int, chars string) (*image.RGBA, error) {
-	const op = "ascii_image.GetFromWebsite"
+func GetFromWebsite(ctx context.Context, url string, opts Options) (*image.RGBA, error) {
+	const fn = "ascii_image.GetFromWebsite"
 
 	if !validate.URL(url) {
 		return nil, ErrIncorrectUrl
@@ -92,7 +101,7 @@ func GetFromWebsite(ctx context.Context, url string, compressionPercentage float
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("%s: %w", fn, err)
 	}
 
 	req.Close = true
@@ -103,17 +112,17 @@ func GetFromWebsite(ctx context.Context, url string, compressionPercentage float
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("%s: %w", fn, err)
 	}
 
 	if resp.StatusCode == http.StatusNotFound {
-		return nil, fmt.Errorf("%s: %w", op, ErrPageNotFound)
+		return nil, fmt.Errorf("%s: %w", fn, ErrPageNotFound)
 	}
 
 	contentType := resp.Header.Get("Content-Type")
 
 	if !validate.ContentType(contentType, "image/png", "image/jpeg", "image/webp") {
-		return nil, fmt.Errorf("%s: %w: %s", op, ErrIncorrectFormat, contentType)
+		return nil, fmt.Errorf("%s: %w: %s", fn, ErrIncorrectFormat, contentType)
 	}
 
 	var img image.Image
@@ -128,93 +137,120 @@ func GetFromWebsite(ctx context.Context, url string, compressionPercentage float
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("%s: %w", fn, err)
 	}
 
-	return getASCIIImage(img, compressionPercentage, maxWidth, maxHeight, chars), nil
+	return getASCIIImage(ctx, img, opts)
 
 }
 
-func getASCIIImage(img image.Image, compressionPercentage float64, maxWidth int, maxHeight int, chars string) *image.RGBA {
+// getASCIIImage processes the image and generates ASCII art.
+func getASCIIImage(ctx context.Context, img image.Image, opts Options) (*image.RGBA, error) {
 
-	if compressionPercentage < 0 || compressionPercentage > 1 {
-		compressionPercentage = 0.0
+	compressionPercentage := clampCompressionPercentage(opts.Compress)
+
+	// Clamp MaxWidth and MaxHeight to valid ranges
+	if opts.MaxWidth == 0 {
+		opts.MaxWidth = maxWidth
+	}
+	if opts.MaxHeight == 0 {
+		opts.MaxHeight = maxHeight
 	}
 
-	if maxWidth <= 0 {
-		maxWidth = 5000 // 50000px
-	}
-
-	if maxHeight <= 0 {
-		maxHeight = 5000 // 50000px
-	}
-
-	if chars == "" {
-		chars = "@%#*+=:~-. "
+	// Default characters for ASCII art
+	if opts.Chars == "" {
+		opts.Chars = defaultChars
 	}
 
 	bounds := img.Bounds()
-	width := bounds.Max.X
-	height := bounds.Max.Y
+	width := uint(bounds.Max.X)
+	height := uint(bounds.Max.Y)
 
-	if width > maxWidth {
-		width = maxWidth
+	if width > opts.MaxWidth {
+		width = opts.MaxWidth
 	}
-	if height > maxHeight {
-		height = maxHeight
+	if height > opts.MaxHeight {
+		height = opts.MaxHeight
 	}
 
-	newWidth := uint(float64(width) * (1 - compressionPercentage))
-	newHeight := uint(float64(height) * (1 - compressionPercentage))
+	compressionFactor := uint(100 - compressionPercentage)
 
-	img = resize.Resize(newWidth, newHeight, img, resize.Lanczos2)
+	newWidth := (width * (compressionFactor)) / 100
+	newHeight := (height * (compressionFactor)) / 100
 
-	return generateASCIIImage(img, chars)
+	img = resize.Resize(newWidth, newHeight, img)
+
+	return generateASCIIImage(ctx, img, opts.Chars)
 }
 
-func generateASCIIImage(img image.Image, chars string) *image.RGBA {
-	bounds := img.Bounds()
-	asciiWidth := bounds.Max.X
-	asciiHeight := bounds.Max.Y
+func clampCompressionPercentage(v uint8) uint8 {
+	if v >= 100 {
+		v = 0
+	}
 
-	asciiImg := image.NewRGBA(image.Rect(0, 0, asciiWidth*10, asciiHeight*10))
+	return v
+}
 
-	draw.Draw(asciiImg, asciiImg.Bounds(), &image.Uniform{color.White}, image.Point{}, draw.Src)
+// generateASCIIImage converts the image to ASCII art.
+func generateASCIIImage(ctx context.Context, img image.Image, chars string) (*image.RGBA, error) {
+	const fn = "ascii_image.generateASCIIImage"
 
-	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			c := img.At(x, y)
-			char := getCharFromBrightness(c, chars)
+	resCh := make(chan *image.RGBA)
 
-			point := fixed.Point26_6{X: fixed.I(x * 10), Y: fixed.I(y * 10)}
-			d := &font.Drawer{
-				Dst:  asciiImg,
-				Src:  image.NewUniform(color.Black),
-				Face: basicfont.Face7x13,
-				Dot:  point,
+	go func() {
+		bounds := img.Bounds()
+		asciiWidth := bounds.Max.X
+		asciiHeight := bounds.Max.Y
+
+		asciiImg := image.NewRGBA(image.Rect(0, 0, asciiWidth*10, asciiHeight*10))
+
+		draw.Draw(asciiImg, asciiImg.Bounds(), &image.Uniform{color.White}, image.Point{}, draw.Src)
+
+		for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+			for x := bounds.Min.X; x < bounds.Max.X; x++ {
+				c := img.At(x, y)
+				char := getCharFromBrightness(c, chars)
+
+				point := fixed.Point26_6{X: fixed.I(x * 10), Y: fixed.I(y * 10)}
+				d := &font.Drawer{
+					Dst:  asciiImg,
+					Src:  image.NewUniform(color.Black),
+					Face: basicfont.Face7x13,
+					Dot:  point,
+				}
+				d.DrawString(char)
 			}
-			d.DrawString(char)
 		}
-	}
 
-	return asciiImg
+		resCh <- asciiImg
+	}()
+
+	select {
+	case <-ctx.Done():
+		return nil, fmt.Errorf("%s: %w", fn, ctx.Err())
+
+	case res := <-resCh:
+		return res, nil
+	}
 }
 
+// getCharFromBrightness maps a color's brightness to a character.
 func getCharFromBrightness(c color.Color, chars string) string {
 	r, g, b, _ := c.RGBA()
 
-	r = r >> 8
-	g = g >> 8
-	b = b >> 8
+	brightness := (r>>8 + g>>8 + b>>8) / 3
+	idx := int(float64(brightness) / 255 * float64(len(chars)-1))
 
-	brightness := (r + g + b) / 3
-	idx := int(float64(brightness) / 255 * float64(len(chars)))
+	return string(chars[clamp(idx, 0, len(chars)-1)])
+}
 
-	if idx < 0 {
-		idx = 0
-	} else if idx >= len(chars) {
-		idx = len(chars) - 1
+// clamp ensures a value is within a specified range.
+func clamp(value, min, max int) int {
+	if value < min {
+		return min
 	}
-
-	return string(chars[idx])
+	if value > max {
+		return max
+	}
+	return value
 }

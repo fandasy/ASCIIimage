@@ -8,69 +8,68 @@ go get github.com/fandasy/ASCIIimage
 
 Functions
 ---
-- GetFromFile (string, float64, int, int, string) (*image.RGBA, error)
+- GetFromFile (ctx context.Context, path string, opts Options) (*image.RGBA, error)
 ```
-GetFromFile takes
- path to the image,
- compression percentage (0.0 - 1.0),
- maximum width (1 = 10px),
- maximum height (1 = 10px),
- chars that will be used to generate (dark - light)
+GetFromFile reads an image from a file and converts it to an ASCII art image.
 
- Possible output errors:
- ErrFileNotFound,
- ErrIncorrectFormat
- and other error
+Possible output errors:
+ErrFileNotFound
+ErrIncorrectFormat
 ```
 
-- GetFromWebsite (ctx, string, float64, int, int, string) (*image.RGBA, error)
+- GetFromWebsite (ctx context.Context, url string, opts Options) (*image.RGBA, error)
 ```
-GetFromWebsite takes
- context,
- image url,
- compression percentage (0.0 - 1.0),
- maximum width (1 = 10px),
- maximum height (1 = 10px),
- chars that will be used to generate (dark - light)
+GetFromWebsite downloads an image from a URL and converts it to an ASCII art image.
 
- Possible output errors:
- ErrIncorrectUrl,
- ErrPageNotFound,
- ErrIncorrectFormat
- and other error
+Possible output errors:
+ErrIncorrectUrl
+ErrPageNotFound
+ErrIncorrectFormat
+```
+
+Struct
+
+```
+type Options struct {
+    Compress  uint8   // 0-99
+    MaxWidth  uint    // 1 = 10px
+    MaxHeight uint    //
+    Chars     string  // dark to light, e.g., '@%#*+=:~-. '
+}
 ```
 
 #### Remark
 ```
- --------------------------------------------------
+--------------------------------------------------
  There are default values for these parameters:
 
- reductionPercentage = 0.0
- maxWidth  = 5000 -> 50000px
- maxHeight = 5000 -> 50000px
- chars     = "@%#*+=:~-. "
+ Compress  = 0
+ MaxWidth  = 10000 -> 100000px
+ MaxHeight = 10000 -> 100000px
+ Chars     = "@%#*+=:~-. "
 
- --------------------------------------------------
+--------------------------------------------------
  Default values can be activated by specifying:
 
- reductionPercentage < 0 || reductionPercentage > 1
- maxWidth  <= 0
- maxHeight <= 0
- chars     == ""
- --------------------------------------------------
+ Compress  >= 100
+ MaxWidth  == 0
+ MaxHeight == 0
+ Chars     == ""
+--------------------------------------------------
 ```
 
 Example
 ---
-```GO
+```Go
 asciiImage, err := asciiimage.GetFromWebsite(
-	context.TODO(),
-	"https://ir.ozone.ru/s3/multimedia-7/c1000/6755179327.jpg",
-	0,  
-	0,  // <- default value is activated
-	0,  // <- |
-	"", // <- /
-)
+    context.TODO(),
+    "https://your_domain.com/file.jpg",
+    asciiimage.Options{
+        Compress:  0,
+        MaxWidth:  0,  // <- default value is activated
+        MaxHeight: 0,  // <- |
+        Chars:     "", // <- /
+    })
 if err != nil {
 	log.Println(err)
 	return
@@ -87,7 +86,3 @@ if err := jpeg.Encode(file, asciiImage, nil); err != nil {
 	return
 }
 ```
-
-Note
----
-Additionally, I would like to thank the nfnt developer for the package github.com/nfnt/resize

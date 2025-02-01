@@ -6,20 +6,20 @@ after you have entered all the data, wait until a message with the file name app
 
 #### Remark
 ```
- --------------------------------------------------
+--------------------------------------------------
  There are default values for these parameters:
 
- reductionPercentage = 0.0
- maxWidth  = 5000 -> 50000px
- maxHeight = 5000 -> 50000px
- chars     = "@%#*+=:~-. "
+ Compress  = 0
+ MaxWidth  = 10000 -> 100000px
+ MaxHeight = 10000 -> 100000px
+ Chars     = "@%#*+=:~-. "
 
- --------------------------------------------------
+--------------------------------------------------
  Default values can be activated by specifying:
 
- reductionPercentage < 0 || reductionPercentage > 1
- maxWidth  <= 0
- maxHeight <= 0
- chars     == ""
- --------------------------------------------------
+ Compress  >= 100
+ MaxWidth  == 0
+ MaxHeight == 0
+ Chars     == ""
+--------------------------------------------------
 ```
