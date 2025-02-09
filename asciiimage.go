@@ -41,6 +41,13 @@ var (
 	ErrIncorrectUrl    = errors.New("incorrect url")
 )
 
+// Options
+//
+// # Compress only in the range from 0 to 99
+//
+// MaxWidth and MaxHeight are defined in the ratio 1 = 10px
+//
+// Chars = dark to light, e.g., '@%#*+=:~-. '
 type Options struct {
 	Compress  uint8
 	MaxWidth  uint
@@ -147,9 +154,6 @@ func GetFromWebsite(ctx context.Context, url string, opts Options) (*image.RGBA,
 // getASCIIImage processes the image and generates ASCII art.
 func getASCIIImage(ctx context.Context, img image.Image, opts Options) (*image.RGBA, error) {
 
-	compressionPercentage := clampCompressionPercentage(opts.Compress)
-
-	// Clamp MaxWidth and MaxHeight to valid ranges
 	if opts.MaxWidth == 0 {
 		opts.MaxWidth = maxWidth
 	}
@@ -157,7 +161,6 @@ func getASCIIImage(ctx context.Context, img image.Image, opts Options) (*image.R
 		opts.MaxHeight = maxHeight
 	}
 
-	// Default characters for ASCII art
 	if opts.Chars == "" {
 		opts.Chars = defaultChars
 	}
@@ -166,72 +169,78 @@ func getASCIIImage(ctx context.Context, img image.Image, opts Options) (*image.R
 	width := uint(bounds.Max.X)
 	height := uint(bounds.Max.Y)
 
-	if width > opts.MaxWidth {
-		width = opts.MaxWidth
+	resizeNeeded := width > opts.MaxWidth || height > opts.MaxHeight
+
+	if opts.Compress > 0 && opts.Compress < 100 {
+		resizeNeeded = true
 	}
-	if height > opts.MaxHeight {
-		height = opts.MaxHeight
+
+	var newWidth, newHeight uint
+
+	if resizeNeeded {
+		if width > opts.MaxWidth || height > opts.MaxHeight {
+			// Maintain aspect ratio while clamping to max dimensions
+			aspectRatio := float64(width) / float64(height)
+			if width > opts.MaxWidth {
+				newWidth = opts.MaxWidth
+				newHeight = uint(float64(newWidth) / aspectRatio)
+			}
+			if newHeight > opts.MaxHeight {
+				newHeight = opts.MaxHeight
+				newWidth = uint(float64(newHeight) * aspectRatio)
+			}
+		}
+
+		// Apply compression if specified
+		if opts.Compress > 0 && opts.Compress < 100 {
+			compressionFactor := uint(100 - opts.Compress)
+			newWidth = (width * (compressionFactor)) / 100
+			newHeight = (height * (compressionFactor)) / 100
+		}
+
+		img = resize.Resize(newWidth, newHeight, img)
 	}
-
-	compressionFactor := uint(100 - compressionPercentage)
-
-	newWidth := (width * (compressionFactor)) / 100
-	newHeight := (height * (compressionFactor)) / 100
-
-	img = resize.Resize(newWidth, newHeight, img)
 
 	return generateASCIIImage(ctx, img, opts.Chars)
-}
-
-func clampCompressionPercentage(v uint8) uint8 {
-	if v >= 100 {
-		v = 0
-	}
-
-	return v
 }
 
 // generateASCIIImage converts the image to ASCII art.
 func generateASCIIImage(ctx context.Context, img image.Image, chars string) (*image.RGBA, error) {
 	const fn = "ascii_image.generateASCIIImage"
 
-	resCh := make(chan *image.RGBA)
+	bounds := img.Bounds()
+	asciiWidth := bounds.Max.X
+	asciiHeight := bounds.Max.Y
 
-	go func() {
-		bounds := img.Bounds()
-		asciiWidth := bounds.Max.X
-		asciiHeight := bounds.Max.Y
+	asciiImg := image.NewRGBA(image.Rect(0, 0, asciiWidth*10, asciiHeight*10))
 
-		asciiImg := image.NewRGBA(image.Rect(0, 0, asciiWidth*10, asciiHeight*10))
+	draw.Draw(asciiImg, asciiImg.Bounds(), &image.Uniform{color.White}, image.Point{}, draw.Src)
 
-		draw.Draw(asciiImg, asciiImg.Bounds(), &image.Uniform{color.White}, image.Point{}, draw.Src)
-
-		for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-			for x := bounds.Min.X; x < bounds.Max.X; x++ {
-				c := img.At(x, y)
-				char := getCharFromBrightness(c, chars)
-
-				point := fixed.Point26_6{X: fixed.I(x * 10), Y: fixed.I(y * 10)}
-				d := &font.Drawer{
-					Dst:  asciiImg,
-					Src:  image.NewUniform(color.Black),
-					Face: basicfont.Face7x13,
-					Dot:  point,
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			if x%10 == 0 && y%10 == 0 { // 10x10 pixels
+				select {
+				case <-ctx.Done():
+					return asciiImg, fmt.Errorf("%s: %w", fn, ctx.Err())
+				default:
 				}
-				d.DrawString(char)
 			}
+
+			c := img.At(x, y)
+			char := getCharFromBrightness(c, chars)
+
+			point := fixed.Point26_6{X: fixed.I(x * 10), Y: fixed.I(y * 10)}
+			d := &font.Drawer{
+				Dst:  asciiImg,
+				Src:  image.NewUniform(color.Black),
+				Face: basicfont.Face7x13,
+				Dot:  point,
+			}
+			d.DrawString(char)
 		}
-
-		resCh <- asciiImg
-	}()
-
-	select {
-	case <-ctx.Done():
-		return nil, fmt.Errorf("%s: %w", fn, ctx.Err())
-
-	case res := <-resCh:
-		return res, nil
 	}
+
+	return asciiImg, nil
 }
 
 // getCharFromBrightness maps a color's brightness to a character.
