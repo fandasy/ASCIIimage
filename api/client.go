@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/fandasy/ASCIIimage"
+	"github.com/fandasy/ASCIIimage/core"
 	"github.com/fandasy/ASCIIimage/validate"
 	"golang.org/x/image/webp"
 	"image"
@@ -17,17 +17,17 @@ import (
 
 type Client struct {
 	httpClient  *http.Client
-	generator   *asciiimage.Generator
+	generator   *core.Generator
 	defaultOpts Options
 }
 
-func NewClient(client *http.Client, generator *asciiimage.Generator, opts Options) *Client {
+func NewClient(client *http.Client, generator *core.Generator, opts Options) *Client {
 	if client == nil {
 		client = http.DefaultClient
 	}
 
 	if generator == nil {
-		generator = asciiimage.DefaultGenerator()
+		generator = core.DefaultGenerator()
 	}
 
 	opts.validate()
@@ -42,7 +42,7 @@ func NewClient(client *http.Client, generator *asciiimage.Generator, opts Option
 func NewDefaultClient() *Client {
 	return &Client{
 		httpClient:  http.DefaultClient,
-		generator:   asciiimage.DefaultGenerator(),
+		generator:   core.DefaultGenerator(),
 		defaultOpts: DefaultOptions(),
 	}
 }

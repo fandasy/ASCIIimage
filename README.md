@@ -1,88 +1,90 @@
-Hi reader, this is my package to convert local or web image to ASCII character image
+# ASCII Image Generator
 
-Supports formats: png, jpg, jpeg, webp 
+![Go Version](https://img.shields.io/badge/go-1.23+-blue.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-```
+Complete Go solution for converting images to ASCII art with flexible configuration options and multiple input sources.
+
+## Features
+
+- **Multiple input sources** (files, URLs, raw images)
+- **Customizable output** (character sets, pixel ratios)
+- **Image processing** (resizing, compression)
+- **Context-aware** operations
+
+## Packages
+
+| Package | Description |
+|---------|-------------|
+| **[Core](core/README.md)** | Low-level ASCII generation logic |
+| **[API](api/README.md)** | High-level client for common use cases |
+
+## Installation
+
+```bash
 go get github.com/fandasy/ASCIIimage
 ```
 
-Functions
----
-- GetFromFile (ctx context.Context, path string, opts Options) (*image.RGBA, error)
-```
-GetFromFile reads an image from a file and converts it to an ASCII art image.
+## Quick Start
 
-Possible output errors:
-ErrFileNotFound
-ErrIncorrectFormat
-```
+### Basic Usage
 
-- GetFromWebsite (ctx context.Context, url string, opts Options) (*image.RGBA, error)
-```
-GetFromWebsite downloads an image from a URL and converts it to an ASCII art image.
+```go
+package main
 
-Possible output errors:
-ErrIncorrectUrl
-ErrPageNotFound
-ErrIncorrectFormat
-```
+import (
+	"context"
+	"os"
+	
+	"github.com/fandasy/ASCIIimage/api"
+)
 
-Struct
-
-```
-type Options struct {
-    Compress  uint8   // 0-99
-    MaxWidth  uint    // 1 = 10px
-    MaxHeight uint    //
-    Chars     string  // dark to light, e.g., '@%#*+=:~-. '
+func main() {
+	client := api.NewDefaultClient()
+	
+	// From file
+	asciiImg, _ := client.GetFromFile(context.Background(), "input.jpg")
+	
+	// From URL
+	asciiImg, _ = client.GetFromWebsite(context.Background(), "https://example.com/image.png")
+	
+	// Save result
+	saveImage("output.png", asciiImg)
 }
 ```
 
-#### Remark
+### Advanced Configuration
+
+```go
+// Custom generator
+generator := core.NewGenerator(core.Options{
+	PixelRatio: core.PixelRatio{X: 2, Y: 3},
+	Chars:      core.NewChars("@%#*+=-:. "),
+})
+
+// Custom client
+client := api.NewClient(
+	&http.Client{Timeout: 30*time.Second},
+	generator,
+	api.Options{
+		MaxWidth:  500, // 5000px
+		Compress:  20,  // 20% compression
+	},
+)
 ```
---------------------------------------------------
- There are default values for these parameters:
 
- Compress  = 0
- MaxWidth  = 10000 -> 100000px
- MaxHeight = 10000 -> 100000px
- Chars     = "@%#*+=:~-. "
+## Examples
 
---------------------------------------------------
- Default values can be activated by specifying:
+See [example](example/) directory of converted ascii images
 
- Compress  >= 100
- MaxWidth  == 0
- MaxHeight == 0
- Chars     == ""
---------------------------------------------------
-```
+[TEST](test/) - package of usage keys
 
-Example
----
-```Go
-asciiImage, err := asciiimage.GetFromWebsite(
-    context.TODO(),
-    "https://your_domain.com/file.jpg",
-    asciiimage.Options{
-        Compress:  0,
-        MaxWidth:  0,  // <- default value is activated
-        MaxHeight: 0,  // <- |
-        Chars:     "", // <- /
-    })
-if err != nil {
-	log.Println(err)
-	return
-}
+## Documentation
 
-file, err := os.Create("example.jpg")
-if err != nil {
-	log.Println("failed to create file: ", err)
-	return
-}
+- [Core Package](core/README.md) - Low-level generation logic
+- [API Package](api/README.md) - High-level client interface
+- [Godoc Reference](https://pkg.go.dev/github.com/fandasy/ASCIIimage)
 
-if err := jpeg.Encode(file, asciiImage, nil); err != nil {
-	log.Println("failed to encode image: ", err)
-	return
-}
-```
+## License
+
+MIT License. See [LICENSE](LICENSE) for details.

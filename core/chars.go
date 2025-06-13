@@ -1,4 +1,4 @@
-package asciiimage
+package core
 
 const (
 // dark ... light

@@ -1,4 +1,4 @@
-package asciiimage
+package core
 
 const (
 	defaultXPixelRatio = 1
