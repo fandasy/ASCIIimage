@@ -22,7 +22,7 @@ Complete Go solution for converting images to ASCII art with flexible configurat
 ## Installation
 
 ```bash
-go get github.com/fandasy/ASCIIimage
+go get github.com/fandasy/ASCIIimage/v2
 ```
 
 ## Quick Start
@@ -36,7 +36,7 @@ import (
 	"context"
 	"os"
 	
-	"github.com/fandasy/ASCIIimage/api"
+	"github.com/fandasy/ASCIIimage/api/v2"
 )
 
 func main() {
@@ -83,7 +83,7 @@ See [example](example/) directory of converted ascii images
 
 - [Core Package](core/README.md) - Low-level generation logic
 - [API Package](api/README.md) - High-level client interface
-- [Godoc Reference](https://pkg.go.dev/github.com/fandasy/ASCIIimage)
+- [Godoc Reference](https://pkg.go.dev/github.com/fandasy/ASCIIimage/v2)
 
 ## License
 

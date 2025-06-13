@@ -20,7 +20,7 @@ import (
 	"image"
 	"os"
 
-	"github.com/fandasy/ASCIIimage/core"
+	"github.com/fandasy/ASCIIimage/core/v2"
 )
 
 func main() {

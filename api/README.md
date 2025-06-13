@@ -22,7 +22,7 @@ import (
 	"context"
 	"os"
 	
-	"github.com/fandasy/ASCIIimage/api"
+	"github.com/fandasy/ASCIIimage/api/v2"
 )
 
 func main() {
