@@ -3,7 +3,7 @@ package test
 import (
 	"context"
 	"errors"
-	"github.com/fandasy/ASCIIimage/api"
+	"github.com/fandasy/ASCIIimage/v2/api"
 	"image/jpeg"
 	"os"
 	"testing"

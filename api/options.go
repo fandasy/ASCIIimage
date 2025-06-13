@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/fandasy/ASCIIimage/resize"
+	"github.com/fandasy/ASCIIimage/v2/resize"
 	"image"
 )
 
