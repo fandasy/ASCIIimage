@@ -15,50 +15,65 @@ import (
 	"path/filepath"
 )
 
+// Client handles ASCII art generation with configurable options.
+// It maintains an HTTP client for web requests and default options.
 type Client struct {
 	httpClient  *http.Client
-	generator   *core.Generator
 	defaultOpts Options
 }
 
-func NewClient(client *http.Client, generator *core.Generator, opts Options) *Client {
+// NewClient creates a new ASCII art client with custom HTTP client and options.
+// If http.Client is nil, http.DefaultClient will be used.
+// Options are validated before being set.
+func NewClient(client *http.Client, opts Options) *Client {
 	if client == nil {
 		client = http.DefaultClient
-	}
-
-	if generator == nil {
-		generator = core.DefaultGenerator()
 	}
 
 	opts.validate()
 
 	return &Client{
 		httpClient:  client,
-		generator:   generator,
 		defaultOpts: opts,
 	}
 }
 
+// NewDefaultClient creates a client with default HTTP client and options.
 func NewDefaultClient() *Client {
 	return &Client{
 		httpClient:  http.DefaultClient,
-		generator:   core.DefaultGenerator(),
 		defaultOpts: DefaultOptions(),
 	}
 }
 
 var (
-	ErrFileNotFound    = errors.New("file not found")
-	ErrPageNotFound    = errors.New("page not found")
+	// ErrFileNotFound indicates the requested file doesn't exist
+	ErrFileNotFound = errors.New("file not found")
+
+	// ErrPageNotFound indicates the requested URL returned 404
+	ErrPageNotFound = errors.New("page not found")
+
+	// ErrIncorrectFormat indicates unsupported image format
 	ErrIncorrectFormat = errors.New("incorrect format")
-	ErrIncorrectUrl    = errors.New("incorrect url")
+
+	// ErrIncorrectUrl indicates malformed URL
+	ErrIncorrectUrl = errors.New("incorrect url")
 )
 
-// GetFromFile reads an image from a file and converts it to an ASCII art image.
+// GetFromFile reads an image from a file and converts it to ASCII art.
+// Supported formats: PNG, JPEG, WebP.
 //
-// Possible output errors:
-// ErrFileNotFound,
-// ErrIncorrectFormat
+// Parameters:
+//   - ctx: Context for cancellation
+//   - path: Path to image file
+//   - opts: Optional conversion settings
+//
+// Returns:
+//   - *image.RGBA: ASCII art image
+//   - error: Possible errors:
+//   - ErrFileNotFound
+//   - ErrIncorrectFormat
+//   - Other file operation or decoding errors
 func (c *Client) GetFromFile(ctx context.Context, path string, opts ...Option) (*image.RGBA, error) {
 	ext := filepath.Ext(path)
 	if !validate.ContentType(ext, ".png", ".jpg", ".jpeg", ".webp") {
@@ -90,12 +105,21 @@ func (c *Client) GetFromFile(ctx context.Context, path string, opts ...Option) (
 	return c.GetFromImage(ctx, img, opts...)
 }
 
-// GetFromWebsite downloads an image from a URL and converts it to an ASCII art image.
+// GetFromWebsite downloads an image from URL and converts it to ASCII art.
+// Supported formats: PNG, JPEG, WebP.
 //
-// Possible output errors:
-// ErrIncorrectUrl,
-// ErrPageNotFound,
-// ErrIncorrectFormat
+// Parameters:
+//   - ctx: Context for cancellation
+//   - url: Image URL
+//   - opts: Optional conversion settings
+//
+// Returns:
+//   - *image.RGBA: ASCII art image
+//   - error: Possible errors:
+//   - ErrIncorrectUrl
+//   - ErrPageNotFound
+//   - ErrIncorrectFormat
+//   - Other network or decoding errors
 func (c *Client) GetFromWebsite(ctx context.Context, url string, opts ...Option) (*image.RGBA, error) {
 	if !validate.URL(url) {
 		return nil, ErrIncorrectUrl
@@ -145,7 +169,16 @@ func (c *Client) GetFromWebsite(ctx context.Context, url string, opts ...Option)
 	return c.GetFromImage(ctx, img, opts...)
 }
 
-// GetFromImage processes the image and generates ASCII art.
+// GetFromImage converts an existing image.Image to ASCII art.
+//
+// Parameters:
+//   - ctx: Context for cancellation
+//   - img: Source image
+//   - opts: Optional conversion settings
+//
+// Returns:
+//   - *image.RGBA: ASCII art image
+//   - error: Context cancellation or processing errors
 func (c *Client) GetFromImage(ctx context.Context, img image.Image, opts ...Option) (*image.RGBA, error) {
 
 	ptrOpts := &c.defaultOpts
@@ -162,5 +195,5 @@ func (c *Client) GetFromImage(ctx context.Context, img image.Image, opts ...Opti
 
 	ptrOpts.applyResizeOptions(img)
 
-	return c.generator.GenerateASCIIImage(ctx, img)
+	return core.GenerateASCIIImage(ctx, img, ptrOpts.Options)
 }

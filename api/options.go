@@ -1,54 +1,48 @@
 package api
 
 import (
+	"github.com/fandasy/ASCIIimage/v2/core"
 	"github.com/fandasy/ASCIIimage/v2/resize"
 	"image"
 )
 
-// --------------------------------------------------
-// There are default values for these parameters:
-//
-// Compress  = 0
-// MaxWidth  = 10000 -> 100000px
-// MaxHeight = 10000 -> 100000px
-//
-// --------------------------------------------------
-// Default values can be activated by specifying:
-//
-// Compress  c < 0 || c > 99
-// MaxWidth  <= 0
-// MaxHeight <= 0
-// --------------------------------------------------
-
 const (
-	// 1 	 = 10px
-	// 10000 = 100000px
-
-	defaultMaxWidth  uint = 10000
-	defaultMaxHeight uint = 10000
+	// Default maximum dimensions (1 unit = 10px)
+	defaultMaxWidth  uint = 10000 // 100,000px
+	defaultMaxHeight uint = 10000 // 100,000px
 )
 
-// Options
-//
-// - Compress only in the range from 0 to 99
-//
-// - MaxWidth and MaxHeight are defined in the ratio 1 = 10px
+// Options configure ASCII art generation behavior.
+// Fields:
+//   - Compress: Compression ratio (0-99)
+//   - MaxWidth: Maximum width (1 = 10px)
+//   - MaxHeight: Maximum height (1 = 10px)
+//   - Options: Core conversion options
 type Options struct {
-	Compress  uint8
-	MaxWidth  uint
-	MaxHeight uint
+	Compress     uint8 // Image compression ratio (0-99)
+	MaxWidth     uint  // Maximum width in 10px units
+	MaxHeight    uint  // Maximum height in 10px units
+	core.Options       // Core ASCII generation options
 }
 
+// DefaultOptions returns the default configuration:
+// - No compression
+// - Maximum dimensions: 10000 (100,000px)
+// - Default core options
 func DefaultOptions() Options {
 	return Options{
 		Compress:  0,
 		MaxWidth:  defaultMaxWidth,
 		MaxHeight: defaultMaxHeight,
+		Options:   core.DefaultOptions(),
 	}
 }
 
+// Option defines a function type for modifying Options
 type Option func(*Options)
 
+// WithCompress creates an Option to set compression ratio (0-99).
+// Values outside 0-99 range will be clamped to 0.
 func WithCompress(compress uint8) Option {
 	if compress < 0 || compress > 99 {
 		compress = 0
@@ -59,6 +53,8 @@ func WithCompress(compress uint8) Option {
 	}
 }
 
+// WithMaxWidth creates an Option to set maximum width.
+// Values ≤ 0 will use defaultMaxWidth.
 func WithMaxWidth(maxWidth uint) Option {
 	if maxWidth <= 0 {
 		maxWidth = defaultMaxWidth
@@ -69,6 +65,8 @@ func WithMaxWidth(maxWidth uint) Option {
 	}
 }
 
+// WithMaxHeight creates an Option to set maximum height.
+// Values ≤ 0 will use defaultMaxHeight.
 func WithMaxHeight(maxHeight uint) Option {
 	if maxHeight <= 0 {
 		maxHeight = defaultMaxHeight
@@ -79,6 +77,21 @@ func WithMaxHeight(maxHeight uint) Option {
 	}
 }
 
+// WithPixelRatio creates an Option to set pixel sampling ratio.
+func WithPixelRatio(x, y int) Option {
+	return func(opts *Options) {
+		opts.PixelRatio = core.PixelRatio{X: x, Y: y}
+	}
+}
+
+// WithChars creates an Option to set custom character set.
+func WithChars(c *core.Chars) Option {
+	return func(opts *Options) {
+		opts.Chars = c
+	}
+}
+
+// validate ensures option fields have valid values, setting defaults when needed.
 func (o *Options) validate() {
 	if o.Compress < 0 || o.Compress > 99 {
 		o.Compress = 0
@@ -93,6 +106,10 @@ func (o *Options) validate() {
 	}
 }
 
+// applyResizeOptions resizes the image according to options:
+//   - Enforces MaxWidth / MaxHeight constraints
+//   - Applies compression if specified.
+//     Maintains aspect ratio during resizing
 func (o *Options) applyResizeOptions(img image.Image) {
 	bounds := img.Bounds()
 	width := uint(bounds.Max.X)

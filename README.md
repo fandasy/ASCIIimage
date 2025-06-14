@@ -34,9 +34,8 @@ package main
 
 import (
 	"context"
-	"os"
 	
-	"github.com/fandasy/ASCIIimage/api/v2"
+	"github.com/fandasy/ASCIIimage/v2/api"
 )
 
 func main() {
@@ -56,19 +55,19 @@ func main() {
 ### Advanced Configuration
 
 ```go
-// Custom generator
-generator := core.NewGenerator(core.Options{
+// Custom generation options
+coreOpts := core.Options{
 	PixelRatio: core.PixelRatio{X: 2, Y: 3},
 	Chars:      core.NewChars("@%#*+=-:. "),
-})
+}
 
 // Custom client
 client := api.NewClient(
 	&http.Client{Timeout: 30*time.Second},
-	generator,
 	api.Options{
 		MaxWidth:  500, // 5000px
 		Compress:  20,  // 20% compression
+		Options:   coreOpts,
 	},
 )
 ```

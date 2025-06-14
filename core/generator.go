@@ -10,45 +10,33 @@ import (
 	"image/draw"
 )
 
-type Generator struct {
-	defaultOpts Options
-}
-
-func NewGenerator(opts Options) *Generator {
-	opts.validate()
-
-	return &Generator{opts}
-}
-
-func DefaultGenerator() *Generator {
-	return &Generator{
-		defaultOpts: DefaultOptions(),
-	}
-}
-
-func init() {
+// Face provides a modified font for ASCII art rendering with:
+//   - Character width: 10px
+//   - Left padding: 2px
+//   - Advance width: 10px
+var Face = func() *basicfont.Face {
 	copyFace := *basicfont.Face7x13
-	Face = &copyFace
-	Face.Width = 10
-	Face.Left = 2
-	Face.Advance = 10
-}
+	face := &copyFace
+	face.Width = 10
+	face.Left = 2
+	face.Advance = 10
 
-var Face *basicfont.Face
+	return face
+}()
 
-// GenerateASCIIImage converts the image to ASCII art.
-func (g *Generator) GenerateASCIIImage(ctx context.Context, img image.Image, opts ...Option) (*image.RGBA, error) {
-	ptrOpts := &g.defaultOpts
-
-	if len(opts) != 0 {
-		copyOpts := g.defaultOpts
-
-		for _, opt := range opts {
-			opt(&copyOpts)
-		}
-
-		ptrOpts = &copyOpts
-	}
+// GenerateASCIIImage converts an image to ASCII art rendered on an image.RGBA.
+// The conversion can be canceled using the provided context.
+//
+// Parameters:
+//   - ctx: Context for cancellation
+//   - img: Source image to convert
+//   - opts: Conversion options (character set, pixel ratio)
+//
+// Returns:
+//   - *image.RGBA: Image containing the ASCII art
+//   - error: Context cancellation error if operation was interrupted
+func GenerateASCIIImage(ctx context.Context, img image.Image, opts Options) (*image.RGBA, error) {
+	opts.validate()
 
 	bounds := img.Bounds()
 	asciiWidth := bounds.Max.X
@@ -58,7 +46,7 @@ func (g *Generator) GenerateASCIIImage(ctx context.Context, img image.Image, opt
 
 	draw.Draw(asciiImg, asciiImg.Bounds(), &image.Uniform{color.White}, image.Point{}, draw.Src)
 
-	for y := bounds.Min.Y; y < bounds.Max.Y; y += ptrOpts.PixelRatio.Y {
+	for y := bounds.Min.Y; y < bounds.Max.Y; y += opts.PixelRatio.Y {
 		select {
 		case <-ctx.Done():
 			return asciiImg, ctx.Err()
@@ -66,12 +54,12 @@ func (g *Generator) GenerateASCIIImage(ctx context.Context, img image.Image, opt
 		}
 
 		asciiLine := make([]byte, 0, bounds.Max.X)
-		for x := bounds.Min.X; x < bounds.Max.X; x += ptrOpts.PixelRatio.X {
+		for x := bounds.Min.X; x < bounds.Max.X; x += opts.PixelRatio.X {
 			r, g, b, _ := img.At(x, y).RGBA()
 
 			brightness := (r>>8 + g>>8 + b>>8) / 3
 
-			asciiLine = append(asciiLine, ptrOpts.Chars[brightness])
+			asciiLine = append(asciiLine, opts.Chars[brightness])
 		}
 
 		point := fixed.Point26_6{X: fixed.I(0), Y: fixed.I(y * 10)}

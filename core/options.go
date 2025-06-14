@@ -1,26 +1,18 @@
 package core
 
-const (
-	defaultXPixelRatio = 1
-	defaultYPixelRatio = 1
-)
-
-type PixelRatio struct {
-	X, Y int
-}
-
-func DefaultPixelRatio() PixelRatio {
-	return PixelRatio{defaultXPixelRatio, defaultYPixelRatio}
-}
-
+// Options configure the ASCII art generation process
 type Options struct {
-	// x, y original pixels -> 1 ASCII char
+	// PixelRatio defines how many original pixels map to one ASCII character
+	// Format: X (width), Y (height) original pixels → 1 ASCII character
 	PixelRatio PixelRatio
 
-	// chars for img generation
+	// Chars defines the character set to use for brightness mapping
 	Chars *Chars
 }
 
+// DefaultOptions returns the default conversion options:
+// - PixelRatio: 1x1 (one source pixel per ASCII character)
+// - Chars: Default character set ("@%#*+=:~-.  ")
 func DefaultOptions() Options {
 	return Options{
 		PixelRatio: DefaultPixelRatio(),
@@ -28,6 +20,7 @@ func DefaultOptions() Options {
 	}
 }
 
+// validate ensures the options have valid values, setting defaults where needed
 func (o *Options) validate() {
 	if o.PixelRatio.X <= 0 {
 		o.PixelRatio.X = defaultXPixelRatio
@@ -38,30 +31,5 @@ func (o *Options) validate() {
 
 	if o.Chars == nil {
 		o.Chars = DefaultChars()
-	}
-}
-
-type Option func(o *Options)
-
-func WithPixelRatio(x, y int) Option {
-	if x <= 0 {
-		x = defaultXPixelRatio
-	}
-	if y <= 0 {
-		y = defaultYPixelRatio
-	}
-
-	return func(o *Options) {
-		o.PixelRatio = PixelRatio{x, y}
-	}
-}
-
-func WithChars(c *Chars) Option {
-	if c == nil {
-		c = DefaultChars()
-	}
-
-	return func(o *Options) {
-		o.Chars = c
 	}
 }

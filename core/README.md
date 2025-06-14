@@ -20,18 +20,18 @@ import (
 	"image"
 	"os"
 
-	"github.com/fandasy/ASCIIimage/core/v2"
+	"github.com/fandasy/ASCIIimage/v2/core"
 )
 
 func main() {
-	// Create default generator
-	generator := core.DefaultGenerator()
+	// Create default generation options
+	opts := core.DefaultOptions()
 
 	// Load your image (implement your own loader)
 	img := loadImage("input.jpg")
 
 	// Generate ASCII art image
-	asciiImg, err := generator.GenerateASCIIImage(context.Background(), img)
+	asciiImg, err := core.GenerateASCIIImage(context.Background(), img, opts)
 	if err != nil {
 		panic(err)
 	}
@@ -44,37 +44,22 @@ func main() {
 ### Advanced Configuration
 
 ```go
-// Create custom generator with options
-generator := core.NewGenerator(core.Options{
+// Create custom generation options
+opts := core.Options{
     PixelRatio: core.PixelRatio{X: 2, Y: 3}, // 2x3 pixels → 1 ASCII char
     Chars: core.NewChars("01"),              // Custom character set
 })
 
-// Generate with runtime options
-asciiImg, err := generator.GenerateASCIIImage(
-    ctx,
-    img,
-    core.WithPixelRatio(3, 3), // Override ratio for this generation
-)
+asciiImg, err := core.GenerateASCIIImage(context.Background(), img, opts)
 ```
 
 ## API Reference
 
-### Generator
+### Function
 
 ```go
-type Generator struct {
-    // contains filtered or unexported fields
-}
-
-// NewGenerator creates a new generator with custom options
-func NewGenerator(opts Options) *Generator
-
-// DefaultGenerator creates a generator with default options
-func DefaultGenerator() *Generator
-
 // GenerateASCIIImage converts an image to ASCII art
-func (g *Generator) GenerateASCIIImage(ctx context.Context, img image.Image, opts ...Option) (*image.RGBA, error)
+func GenerateASCIIImage(ctx context.Context, img image.Image, opts Options) (*image.RGBA, error)
 ```
 
 ### Options
@@ -92,9 +77,6 @@ type Options struct {
 type PixelRatio struct {
     X, Y int
 }
-
-// Option allows runtime modification of options
-type Option func(*Options)
 ```
 
 ### Character Sets
@@ -108,37 +90,4 @@ func NewChars(chars string) *Chars
 
 // DefaultChars returns the default character set (@%#*+=:~-. )
 func DefaultChars() *Chars
-```
-
-## Configuration Options
-
-### Pixel Ratio
-
-Control how many original pixels map to one ASCII character:
-
-```go
-// 1x1 pixel → 1 character (highest detail)
-WithPixelRatio(1, 1)
-
-// 25x25 pixels → 1 character (medium detail)
-WithPixelRatio(25, 25)
-
-// 23/52 pixels → 1 character (custom)
-WithPixelRatio(23, 52)
-```
-
-### Character Sets
-
-Customize the ASCII characters used (from darkest to lightest):
-
-```go
-// Simple binary style
-WithChars(NewChars("01"))
-
-// Standard ASCII art
-WithChars(NewChars("@%#*+=:~-.  "))
-WithChars(DefaultChars())
-
-// Custom gradient
-WithChars(NewChars(" .:-=+*#%@"))
 ```

@@ -1,15 +1,22 @@
 package core
 
-const (
-// dark ... light
-// defaultChars = "@%#*+=:~-.  "
-)
+// Character gradient from dark to light
+// Default characters: "@%#*+=:~-.  "
 
+// Chars represents a mapping of 256 brightness levels to ASCII characters.
+// The characters are ordered from darkest (low brightness) to lightest (high brightness).
 type Chars [256]byte
 
-// NewChars accepts only ascii characters, in the format: dark ... light
+// NewChars creates a new character set for brightness-to-ASCII conversion.
+// Accepts only ASCII characters ordered from darkest to lightest.
 //
-// Default: "@%#*+=:~-.  "
+// Returns default character set ("@%#*+=:~-.  ") if:
+//   - Input string is empty
+//   - Input contains non-ASCII characters
+//
+// Example:
+//
+//	chars := NewChars(" .:-=+*#%@") // Light to dark gradient
 func NewChars(chars string) *Chars {
 	if len(chars) == 0 {
 		return DefaultChars()
@@ -31,12 +38,12 @@ func NewChars(chars string) *Chars {
 	return &bytes
 }
 
-// DefaultChars set defaultChars = "@%#*+=:~-.  "
+// DefaultChars returns the default character set: "@%#*+=:~-.  "
 func DefaultChars() *Chars {
 	return defaultChars
 }
 
-// defaultChars = "@%#*+=:~-.  "
+// defaultChars contains the predefined default character set
 var defaultChars = &Chars{
 	64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
 	37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37, 37,

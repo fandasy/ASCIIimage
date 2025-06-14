@@ -22,7 +22,7 @@ import (
 	"context"
 	"os"
 	
-	"github.com/fandasy/ASCIIimage/api/v2"
+	"github.com/fandasy/ASCIIimage/v2/api"
 )
 
 func main() {
@@ -57,27 +57,26 @@ httpClient := &http.Client{
 	Timeout: 30 * time.Second,
 }
 
-// Create custom generator
-generator := core.NewGenerator(core.Options{
+// Create custom generation options
+coreOpts := core.Options{
 	PixelRatio: core.PixelRatio{X: 2, Y: 3},
-})
+}
 
 // Create API client with custom options
 client := api.NewClient(
 	httpClient,
-	generator,
 	api.Options{
 		MaxWidth:  500,  // 5000px (1 unit = 10px)
 		MaxHeight: 300,  // 3000px
 		Compress:  30,   // 30% compression
+		Options:   coreOpts,
 	},
 )
 
 // Generate with additional runtime options
-asciiImg, err := client.GetFromFile(
-	ctx,
-	"large-image.jpg",
-	api.WithMaxWidth(200),  // Override max width for this request
+asciiImg, err := client.GetFromFile(ctx, "large-image.jpg",
+	api.WithMaxWidth(200),      // Override max width for this request
+	api.WithPixelRatio(10, 20), // Override pixel ratio 10:20 for this request
 )
 ```
 
@@ -91,7 +90,7 @@ type Client struct {
 }
 
 // NewClient creates a new client with custom configuration
-func NewClient(client *http.Client, generator *core.Generator, opts Options) *Client
+func NewClient(client *http.Client, opts Options) *Client
 
 // NewDefaultClient creates a client with default configuration
 func NewDefaultClient() *Client
@@ -113,19 +112,29 @@ type Options struct {
 	Compress  uint8 // Compression percentage (0-99)
 	MaxWidth  uint  // Maximum width (1 unit = 10px)
 	MaxHeight uint  // Maximum height (1 unit = 10px)
+	core.Options    // Generation options
 }
 
-// Option allows runtime modification of options
+// Option defines a function type for modifying Options
 type Option func(*Options)
 
-// WithCompress sets compression level (0-99)
+// WithCompress creates an Option to set compression ratio (0-99).
+// Values outside 0-99 range will be clamped to 0.
 func WithCompress(compress uint8) Option
 
-// WithMaxWidth sets maximum width (1 unit = 10px)
+// WithMaxWidth creates an Option to set maximum width.
+// Values ≤ 0 will use defaultMaxWidth.
 func WithMaxWidth(maxWidth uint) Option
 
-// WithMaxHeight sets maximum height (1 unit = 10px)
+// WithMaxHeight creates an Option to set maximum height.
+// Values ≤ 0 will use defaultMaxHeight.
 func WithMaxHeight(maxHeight uint) Option
+
+// WithPixelRatio creates an Option to set pixel sampling ratio.
+func WithPixelRatio(x, y int) Option
+
+// WithChars creates an Option to set custom character set.
+func WithChars(c *core.Chars) Option
 ```
 
 ### Error Handling
@@ -167,7 +176,7 @@ httpClient := &http.Client{
 	},
 }
 
-client := api.NewClient(httpClient, generator, opts)
+client := api.NewClient(httpClient, opts)
 ```
 
 ## Supported Image Formats
