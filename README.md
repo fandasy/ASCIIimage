@@ -14,10 +14,10 @@ Complete Go solution for converting images to ASCII art with flexible configurat
 
 ## Packages
 
-| Package | Description |
-|---------|-------------|
-| **[Core](core/README.md)** | Low-level ASCII generation logic |
-| **[API](api/README.md)** | High-level client for common use cases |
+| Package                  | Description |
+|--------------------------|-------------|
+| **[Core](core/)**        | Low-level ASCII generation logic |
+| **[API](api/)**          | High-level client for common use cases |
 
 ## Installation
 
@@ -74,15 +74,15 @@ client := api.NewClient(
 
 ## Examples
 
-See [example](example/) directory of converted ascii images
+See example [file](example/file/main.go) and [url](example/url/main.go) directory of converted ascii images
 
-[TEST](test/) - package of usage keys
+Test [core](test/core/core_test.go), [api](test/api/api_test.go) - package of test keys
 
 ## Documentation
 
 - [Core Package](core/README.md) - Low-level generation logic
 - [API Package](api/README.md) - High-level client interface
-- [Godoc Reference](https://pkg.go.dev/github.com/fandasy/ASCIIimage/v2)
+- [Godoc Reference](https://pkg.go.dev/github.com/fandasy/ASCIIimage/v2) - Package: [Core](https://pkg.go.dev/github.com/fandasy/ASCIIimage/v2/core), [API](https://pkg.go.dev/github.com/fandasy/ASCIIimage/v2/api)
 
 ## License
 

@@ -11,8 +11,8 @@ type Options struct {
 }
 
 // DefaultOptions returns the default conversion options:
-// - PixelRatio: 1x1 (one source pixel per ASCII character)
-// - Chars: Default character set ("@%#*+=:~-.  ")
+//   - PixelRatio: 1x1 (one source pixel per ASCII character)
+//   - Chars: Default character set ("@%#*+=:~-.  ")
 func DefaultOptions() Options {
 	return Options{
 		PixelRatio: DefaultPixelRatio(),

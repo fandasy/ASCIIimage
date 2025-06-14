@@ -42,7 +42,14 @@ func GenerateASCIIImage(ctx context.Context, img image.Image, opts Options) (*im
 	asciiWidth := bounds.Max.X
 	asciiHeight := bounds.Max.Y
 
-	asciiImg := image.NewRGBA(image.Rect(0, 0, asciiWidth*10, asciiHeight*10))
+	asciiImg := image.NewRGBA(
+		image.Rect(
+			0,
+			0,
+			asciiWidth*(10/opts.PixelRatio.X),
+			asciiHeight*(10/opts.PixelRatio.Y),
+		),
+	)
 
 	draw.Draw(asciiImg, asciiImg.Bounds(), &image.Uniform{color.White}, image.Point{}, draw.Src)
 
