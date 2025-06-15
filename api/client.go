@@ -25,10 +25,12 @@ type Client struct {
 // NewClient creates a new ASCII art client with custom HTTP client and options.
 // If http.Client is nil, http.DefaultClient will be used.
 // Options are validated before being set.
-func NewClient(client *http.Client, opts Options) *Client {
+func NewClient(client *http.Client, opts_ptr *Options) *Client {
 	if client == nil {
 		client = http.DefaultClient
 	}
+
+	opts := *opts_ptr
 
 	opts.validate()
 
@@ -42,7 +44,7 @@ func NewClient(client *http.Client, opts Options) *Client {
 func NewDefaultClient() *Client {
 	return &Client{
 		httpClient:  http.DefaultClient,
-		defaultOpts: DefaultOptions(),
+		defaultOpts: *DefaultOptions(),
 	}
 }
 
@@ -195,5 +197,5 @@ func (c *Client) GetFromImage(ctx context.Context, img image.Image, opts ...Opti
 
 	ptrOpts.applyResizeOptions(img)
 
-	return core.GenerateASCIIImage(ctx, img, ptrOpts.Options)
+	return core.GenerateASCIIImage(ctx, img, &ptrOpts.Options)
 }

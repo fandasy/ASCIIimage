@@ -6,7 +6,6 @@ import (
 	"golang.org/x/image/font/basicfont"
 	"golang.org/x/image/math/fixed"
 	"image"
-	"image/color"
 	"image/draw"
 )
 
@@ -30,12 +29,14 @@ var Face = func() *basicfont.Face {
 // Parameters:
 //   - ctx: Context for cancellation
 //   - img: Source image to convert
-//   - opts: Conversion options (character set, pixel ratio)
+//   - opts: Conversion options (character set, pixel ratio, color)
 //
 // Returns:
 //   - *image.RGBA: Image containing the ASCII art
 //   - error: Context cancellation error if operation was interrupted
-func GenerateASCIIImage(ctx context.Context, img image.Image, opts Options) (*image.RGBA, error) {
+func GenerateASCIIImage(ctx context.Context, img image.Image, opts_ptr *Options) (*image.RGBA, error) {
+	opts := *opts_ptr
+
 	opts.validate()
 
 	bounds := img.Bounds()
@@ -51,7 +52,7 @@ func GenerateASCIIImage(ctx context.Context, img image.Image, opts Options) (*im
 		),
 	)
 
-	draw.Draw(asciiImg, asciiImg.Bounds(), &image.Uniform{color.White}, image.Point{}, draw.Src)
+	draw.Draw(asciiImg, asciiImg.Bounds(), &image.Uniform{opts.Color.Background}, image.Point{}, draw.Src)
 
 	for y := bounds.Min.Y; y < bounds.Max.Y; y += opts.PixelRatio.Y {
 		select {
@@ -72,7 +73,7 @@ func GenerateASCIIImage(ctx context.Context, img image.Image, opts Options) (*im
 		point := fixed.Point26_6{X: fixed.I(0), Y: fixed.I(y * 10)}
 		d := &font.Drawer{
 			Dst:  asciiImg,
-			Src:  image.NewUniform(color.Black),
+			Src:  image.NewUniform(opts.Color.Face),
 			Face: Face,
 			Dot:  point,
 		}

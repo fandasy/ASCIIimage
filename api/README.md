@@ -62,10 +62,13 @@ coreOpts := core.Options{
 	PixelRatio: core.PixelRatio{X: 2, Y: 3},
 }
 
+// Easier creation of custom options
+coreOpts := core.DefaultOptions().WithPixelRatio(2, 3)
+
 // Create API client with custom options
 client := api.NewClient(
 	httpClient,
-	api.Options{
+	&api.Options{
 		MaxWidth:  500,  // 5000px (1 unit = 10px)
 		MaxHeight: 300,  // 3000px
 		Compress:  30,   // 30% compression
@@ -90,7 +93,7 @@ type Client struct {
 }
 
 // NewClient creates a new client with custom configuration
-func NewClient(client *http.Client, opts Options) *Client
+func NewClient(client *http.Client, opts_ptr *Options) *Client
 
 // NewDefaultClient creates a client with default configuration
 func NewDefaultClient() *Client
@@ -135,6 +138,15 @@ func WithPixelRatio(x, y int) Option
 
 // WithChars creates an Option to set custom character set.
 func WithChars(c *core.Chars) Option
+
+// WithColor sets both foreground (face) and background colors for ASCII art generation.
+func WithColor(c core.Color) Option
+
+// WithFaceColor sets only the foreground (text) color for ASCII art.
+func WithFaceColor(c color.Color) Option
+
+// WithBackgroundColor sets only the background color for ASCII art.
+func WithBackgroundColor(c color.Color) Option
 ```
 
 ### Error Handling

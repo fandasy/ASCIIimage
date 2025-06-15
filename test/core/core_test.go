@@ -71,7 +71,7 @@ func TestGenerateASCIIImage(t *testing.T) {
 	tests := []struct {
 		name      string
 		img       image.Image
-		opts      core.Options
+		opts      *core.Options
 		wantError bool
 		checkFn   func(*image.RGBA) bool
 	}{
@@ -89,7 +89,7 @@ func TestGenerateASCIIImage(t *testing.T) {
 		{
 			name: "custom pixel ratio",
 			img:  img,
-			opts: core.Options{
+			opts: &core.Options{
 				PixelRatio: core.PixelRatio{X: 2, Y: 1},
 			},
 			wantError: false,
@@ -101,7 +101,7 @@ func TestGenerateASCIIImage(t *testing.T) {
 		{
 			name: "custom chars",
 			img:  img,
-			opts: core.Options{
+			opts: &core.Options{
 				Chars: core.NewChars("01"),
 			},
 			wantError: false,

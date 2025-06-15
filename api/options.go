@@ -4,6 +4,7 @@ import (
 	"github.com/fandasy/ASCIIimage/v2/core"
 	"github.com/fandasy/ASCIIimage/v2/resize"
 	"image"
+	"image/color"
 )
 
 const (
@@ -29,13 +30,33 @@ type Options struct {
 // - No compression
 // - Maximum dimensions: 10000 (100,000px)
 // - Default core options
-func DefaultOptions() Options {
-	return Options{
+func DefaultOptions() *Options {
+	return &Options{
 		Compress:  0,
 		MaxWidth:  defaultMaxWidth,
 		MaxHeight: defaultMaxHeight,
-		Options:   core.DefaultOptions(),
+		Options:   *core.DefaultOptions(),
 	}
+}
+
+func (o *Options) WithCompress(compress uint8) *Options {
+	o.Compress = compress
+	return o
+}
+
+func (o *Options) WithMaxWidth(maxWidth uint) *Options {
+	o.MaxWidth = maxWidth
+	return o
+}
+
+func (o *Options) WithMaxHeight(maxHeight uint) *Options {
+	o.MaxHeight = maxHeight
+	return o
+}
+
+func (o *Options) WithCoreOptions(options *core.Options) *Options {
+	o.Options = *options
+	return o
 }
 
 // Option defines a function type for modifying Options
@@ -88,6 +109,39 @@ func WithPixelRatio(x, y int) Option {
 func WithChars(c *core.Chars) Option {
 	return func(opts *Options) {
 		opts.Chars = c
+	}
+}
+
+// WithColor sets both foreground (face) and background colors for ASCII art generation.
+//
+// The color pair will be automatically validated to ensure proper contrast.
+func WithColor(c core.Color) Option {
+	return func(opts *Options) {
+		opts.Color = c
+	}
+}
+
+// WithFaceColor sets only the foreground (text) color for ASCII art.
+// The background color will remain unchanged unless explicitly set.
+//
+// The color will be automatically validated against the background:
+//   - If nil, will use complementary color of background
+//   - If same as background, will be adjusted for contrast
+func WithFaceColor(c color.Color) Option {
+	return func(opts *Options) {
+		opts.Color.Face = c
+	}
+}
+
+// WithBackgroundColor sets only the background color for ASCII art.
+// The foreground color will remain unchanged unless explicitly set.
+//
+// The color will be automatically validated against the foreground:
+//   - If nil, will use complementary color of foreground
+//   - If same as foreground, foreground will be adjusted for contrast
+func WithBackgroundColor(c color.Color) Option {
+	return func(opts *Options) {
+		opts.Color.Background = c
 	}
 }
 

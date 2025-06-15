@@ -12,5 +12,5 @@ type PixelRatio struct {
 
 // DefaultPixelRatio returns the default 1:1 pixel ratio
 func DefaultPixelRatio() PixelRatio {
-	return PixelRatio{defaultXPixelRatio, defaultYPixelRatio}
+	return PixelRatio{X: defaultXPixelRatio, Y: defaultYPixelRatio}
 }

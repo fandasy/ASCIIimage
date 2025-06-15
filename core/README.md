@@ -45,10 +45,17 @@ func main() {
 
 ```go
 // Create custom generation options
-opts := core.Options{
+opts := &core.Options{
     PixelRatio: core.PixelRatio{X: 2, Y: 3}, // 2x3 pixels → 1 ASCII char
     Chars: core.NewChars("01"),              // Custom character set
-})
+    Color: core.DefaultColor(),
+}
+
+// Applying a customization over a ready-made option
+opts.WithFaceColor(color.RGBA{R: 122, G: 122, B: 122})
+
+// Applying a setting to the default option
+// opts := core.DefaultOptions().WithFaceColor(color.RGBA{R: 122, G: 122, B: 122})
 
 asciiImg, err := core.GenerateASCIIImage(context.Background(), img, opts)
 ```
@@ -59,7 +66,7 @@ asciiImg, err := core.GenerateASCIIImage(context.Background(), img, opts)
 
 ```go
 // GenerateASCIIImage converts an image to ASCII art
-func GenerateASCIIImage(ctx context.Context, img image.Image, opts Options) (*image.RGBA, error)
+func GenerateASCIIImage(ctx context.Context, img image.Image, opts_ptr *Options) (*image.RGBA, error)
 ```
 
 ### Options
@@ -71,11 +78,24 @@ type Options struct {
     
     // Chars defines the character set to use (dark to light)
     Chars *Chars
+
+    // Color specifies the foreground and background color scheme
+    Color Color
 }
 
 // PixelRatio defines the pixel-to-character ratio
 type PixelRatio struct {
     X, Y int
+}
+
+// Color represents a pair of foreground and background colors for ASCII art rendering.
+// It ensures proper contrast between text and background.
+type Color struct {
+    // Face is the foreground/text color
+    Face color.Color
+    
+    // Background is the canvas/background color
+    Background color.Color
 }
 ```
 
