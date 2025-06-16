@@ -98,6 +98,9 @@ func NewClient(client *http.Client, opts_ptr *Options) *Client
 // NewDefaultClient creates a client with default configuration
 func NewDefaultClient() *Client
 
+// Applying new options
+func (c *Client) WithOptions(opts *Options) *Client
+
 // GetFromFile reads an image from file and converts to ASCII art
 func (c *Client) GetFromFile(ctx context.Context, path string, opts ...Option) (*image.RGBA, error)
 

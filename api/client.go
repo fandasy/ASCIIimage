@@ -48,6 +48,11 @@ func NewDefaultClient() *Client {
 	}
 }
 
+func (c *Client) WithOptions(opts *Options) *Client {
+	c.defaultOpts = *opts
+	return c
+}
+
 var (
 	// ErrFileNotFound indicates the requested file doesn't exist
 	ErrFileNotFound = errors.New("file not found")
@@ -197,5 +202,5 @@ func (c *Client) GetFromImage(ctx context.Context, img image.Image, opts ...Opti
 
 	ptrOpts.applyResizeOptions(img)
 
-	return core.GenerateASCIIImage(ctx, img, &ptrOpts.Options)
+	return core.GenerateASCIIImage(ctx, img, &ptrOpts.Core)
 }
