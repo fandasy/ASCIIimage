@@ -6,6 +6,7 @@ Core package for converting images to ASCII art in Go. Provides flexible configu
 
 - Configurable pixel-to-character ratio
 - Customizable character sets
+- Set the color scheme for symbols and background
 - Context-aware processing
 
 ## Usage
