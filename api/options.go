@@ -18,12 +18,12 @@ const (
 //   - Compress: Compression ratio (0-99)
 //   - MaxWidth: Maximum width (1 = 10px)
 //   - MaxHeight: Maximum height (1 = 10px)
-//   - Options: Core conversion options
+//   - Core: core conversion options
 type Options struct {
-	Compress     uint8 // Image compression ratio (0-99)
-	MaxWidth     uint  // Maximum width in 10px units
-	MaxHeight    uint  // Maximum height in 10px units
-	core.Options       // Core ASCII generation options
+	Compress  uint8        // Image compression ratio (0-99)
+	MaxWidth  uint         // Maximum width in 10px units
+	MaxHeight uint         // Maximum height in 10px units
+	Core      core.Options // Core ASCII generation options
 }
 
 // DefaultOptions returns the default configuration:
@@ -35,7 +35,7 @@ func DefaultOptions() *Options {
 		Compress:  0,
 		MaxWidth:  defaultMaxWidth,
 		MaxHeight: defaultMaxHeight,
-		Options:   *core.DefaultOptions(),
+		Core:      *core.DefaultOptions(),
 	}
 }
 
@@ -55,7 +55,32 @@ func (o *Options) WithMaxHeight(maxHeight uint) *Options {
 }
 
 func (o *Options) WithCoreOptions(options *core.Options) *Options {
-	o.Options = *options
+	o.Core = *options
+	return o
+}
+
+func (o *Options) WithPixelRatio(x, y int) *Options {
+	o.Core.PixelRatio = core.PixelRatio{X: x, Y: y}
+	return o
+}
+
+func (o *Options) WithChars(c *core.Chars) *Options {
+	o.Core.Chars = c
+	return o
+}
+
+func (o *Options) WithColor(color core.Color) *Options {
+	o.Core.Color = color
+	return o
+}
+
+func (o *Options) WithFaceColor(c color.Color) *Options {
+	o.Core.Color.Face = c
+	return o
+}
+
+func (o *Options) WithBackgroundColor(c color.Color) *Options {
+	o.Core.Color.Background = c
 	return o
 }
 
@@ -101,14 +126,14 @@ func WithMaxHeight(maxHeight uint) Option {
 // WithPixelRatio creates an Option to set pixel sampling ratio.
 func WithPixelRatio(x, y int) Option {
 	return func(opts *Options) {
-		opts.PixelRatio = core.PixelRatio{X: x, Y: y}
+		opts.Core.PixelRatio = core.PixelRatio{X: x, Y: y}
 	}
 }
 
 // WithChars creates an Option to set custom character set.
 func WithChars(c *core.Chars) Option {
 	return func(opts *Options) {
-		opts.Chars = c
+		opts.Core.Chars = c
 	}
 }
 
@@ -117,7 +142,7 @@ func WithChars(c *core.Chars) Option {
 // The color pair will be automatically validated to ensure proper contrast.
 func WithColor(c core.Color) Option {
 	return func(opts *Options) {
-		opts.Color = c
+		opts.Core.Color = c
 	}
 }
 
@@ -129,7 +154,7 @@ func WithColor(c core.Color) Option {
 //   - If same as background, will be adjusted for contrast
 func WithFaceColor(c color.Color) Option {
 	return func(opts *Options) {
-		opts.Color.Face = c
+		opts.Core.Color.Face = c
 	}
 }
 
@@ -141,7 +166,7 @@ func WithFaceColor(c color.Color) Option {
 //   - If same as foreground, foreground will be adjusted for contrast
 func WithBackgroundColor(c color.Color) Option {
 	return func(opts *Options) {
-		opts.Color.Background = c
+		opts.Core.Color.Background = c
 	}
 }
 
