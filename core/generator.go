@@ -40,17 +40,20 @@ func GenerateASCIIImage(ctx context.Context, img image.Image, opts_ptr *Options)
 	opts.validate()
 
 	bounds := img.Bounds()
-	asciiWidth := bounds.Max.X
-	asciiHeight := bounds.Max.Y
+
+	outputWidth := bounds.Max.X * (10 / opts.PixelRatio.X)
+	outputHeight := bounds.Max.Y * (10 / opts.PixelRatio.X)
 
 	asciiImg := image.NewRGBA(
 		image.Rect(
 			0,
 			0,
-			asciiWidth*(10/opts.PixelRatio.X),
-			asciiHeight*(10/opts.PixelRatio.Y),
+			outputWidth,
+			outputHeight,
 		),
 	)
+
+	lenAsciiLine := bounds.Max.X / opts.PixelRatio.X
 
 	draw.Draw(asciiImg, asciiImg.Bounds(), &image.Uniform{opts.Color.Background}, image.Point{}, draw.Src)
 
@@ -61,7 +64,8 @@ func GenerateASCIIImage(ctx context.Context, img image.Image, opts_ptr *Options)
 		default:
 		}
 
-		asciiLine := make([]byte, 0, bounds.Max.X)
+		asciiLine := make([]byte, 0, lenAsciiLine)
+
 		for x := bounds.Min.X; x < bounds.Max.X; x += opts.PixelRatio.X {
 			r, g, b, _ := img.At(x, y).RGBA()
 
@@ -70,7 +74,9 @@ func GenerateASCIIImage(ctx context.Context, img image.Image, opts_ptr *Options)
 			asciiLine = append(asciiLine, opts.Chars[brightness])
 		}
 
-		point := fixed.Point26_6{X: fixed.I(0), Y: fixed.I(y * 10)}
+		scaledY := (y / opts.PixelRatio.Y) * 10
+
+		point := fixed.Point26_6{X: fixed.I(0), Y: fixed.I(scaledY)}
 		d := &font.Drawer{
 			Dst:  asciiImg,
 			Src:  image.NewUniform(opts.Color.Face),

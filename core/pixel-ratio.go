@@ -14,3 +14,12 @@ type PixelRatio struct {
 func DefaultPixelRatio() PixelRatio {
 	return PixelRatio{X: defaultXPixelRatio, Y: defaultYPixelRatio}
 }
+
+func (pr *PixelRatio) validate() {
+	if pr.X <= 0 {
+		pr.X = defaultXPixelRatio
+	}
+	if pr.Y <= 0 {
+		pr.Y = defaultYPixelRatio
+	}
+}

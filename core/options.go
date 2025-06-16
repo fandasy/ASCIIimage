@@ -56,12 +56,7 @@ func (o *Options) WithBackgroundColor(c color.Color) *Options {
 
 // validate ensures the options have valid values, setting defaults where needed
 func (o *Options) validate() {
-	if o.PixelRatio.X <= 0 {
-		o.PixelRatio.X = defaultXPixelRatio
-	}
-	if o.PixelRatio.Y <= 0 {
-		o.PixelRatio.Y = defaultYPixelRatio
-	}
+	o.PixelRatio.validate()
 
 	if o.Chars == nil {
 		o.Chars = DefaultChars()
