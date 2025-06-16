@@ -13,6 +13,9 @@ type Color struct {
 
 	// Background is the canvas/background color
 	Background color.Color
+
+	// _Type defines what type of color.Color will be used when generating img
+	_Type imageType
 }
 
 // DefaultColor returns the standard color scheme:
@@ -33,6 +36,7 @@ func DefaultColor() Color {
 func (c *Color) validate() {
 	if c.Face == color.Black && c.Background == color.White ||
 		c.Face == color.White && c.Background == color.Black {
+		c._Type = imageTypeGray16
 		return
 	}
 
@@ -45,18 +49,23 @@ func (c *Color) validate() {
 	case faceIsNil && backGroundIsNil:
 		c.Face = color.Black
 		c.Background = color.White
+		c._Type = imageTypeGray16
 		return
+
 	case faceIsNil:
 		c.Face = complementaryColor(c.Background)
-		return
+
 	case backGroundIsNil:
 		c.Background = complementaryColor(c.Face)
-		return
+
+	default:
+		if c.Face == c.Background {
+			c.Face = complementaryColor(c.Background)
+		}
 	}
 
-	if c.Face == c.Background {
-		c.Face = complementaryColor(c.Background)
-	}
+	iType := getColorType(c.Face, c.Background)
+	c._Type = iType
 }
 
 func colorIsNil(c color.Color) bool {

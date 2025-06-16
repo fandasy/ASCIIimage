@@ -102,13 +102,13 @@ func NewDefaultClient() *Client
 func (c *Client) WithOptions(opts *Options) *Client
 
 // GetFromFile reads an image from file and converts to ASCII art
-func (c *Client) GetFromFile(ctx context.Context, path string, opts ...Option) (*image.RGBA, error)
+func (c *Client) GetFromFile(ctx context.Context, path string, opts ...Option) (image.Image, error)
 
 // GetFromWebsite downloads an image from URL and converts to ASCII art
-func (c *Client) GetFromWebsite(ctx context.Context, url string, opts ...Option) (*image.RGBA, error)
+func (c *Client) GetFromWebsite(ctx context.Context, url string, opts ...Option) (image.Image, error)
 
 // GetFromImage converts an existing image to ASCII art
-func (c *Client) GetFromImage(ctx context.Context, img image.Image, opts ...Option) (*image.RGBA, error)
+func (c *Client) GetFromImage(ctx context.Context, img image.Image, opts ...Option) (image.Image, error)
 ```
 
 ### Options

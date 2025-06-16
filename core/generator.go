@@ -34,7 +34,7 @@ var Face = func() *basicfont.Face {
 // Returns:
 //   - *image.RGBA: Image containing the ASCII art
 //   - error: Context cancellation error if operation was interrupted
-func GenerateASCIIImage(ctx context.Context, img image.Image, opts_ptr *Options) (*image.RGBA, error) {
+func GenerateASCIIImage(ctx context.Context, img image.Image, opts_ptr *Options) (image.Image, error) {
 	opts := *opts_ptr
 
 	opts.validate()
@@ -43,19 +43,12 @@ func GenerateASCIIImage(ctx context.Context, img image.Image, opts_ptr *Options)
 
 	outputWidth := bounds.Max.X * (10 / opts.PixelRatio.X)
 	outputHeight := bounds.Max.Y * (10 / opts.PixelRatio.X)
-
-	asciiImg := image.NewRGBA(
-		image.Rect(
-			0,
-			0,
-			outputWidth,
-			outputHeight,
-		),
-	)
+	asciiImg := opts.Color._Type.createDrawImage(outputWidth, outputHeight)
 
 	lenAsciiLine := bounds.Max.X / opts.PixelRatio.X
+	asciiLineBuf := make([]byte, 0, lenAsciiLine)
 
-	draw.Draw(asciiImg, asciiImg.Bounds(), &image.Uniform{opts.Color.Background}, image.Point{}, draw.Src)
+	draw.Draw(asciiImg, asciiImg.Bounds(), &image.Uniform{C: opts.Color.Background}, image.Point{}, draw.Src)
 
 	for y := bounds.Min.Y; y < bounds.Max.Y; y += opts.PixelRatio.Y {
 		select {
@@ -64,7 +57,7 @@ func GenerateASCIIImage(ctx context.Context, img image.Image, opts_ptr *Options)
 		default:
 		}
 
-		asciiLine := make([]byte, 0, lenAsciiLine)
+		asciiLine := asciiLineBuf[:0]
 
 		for x := bounds.Min.X; x < bounds.Max.X; x += opts.PixelRatio.X {
 			r, g, b, _ := img.At(x, y).RGBA()

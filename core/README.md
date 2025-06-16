@@ -66,7 +66,7 @@ asciiImg, err := core.GenerateASCIIImage(context.Background(), img, opts)
 
 ```go
 // GenerateASCIIImage converts an image to ASCII art
-func GenerateASCIIImage(ctx context.Context, img image.Image, opts_ptr *Options) (*image.RGBA, error)
+func GenerateASCIIImage(ctx context.Context, img image.Image, opts_ptr *Options) (image.Image, error)
 ```
 
 ### Options

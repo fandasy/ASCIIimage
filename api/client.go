@@ -81,7 +81,7 @@ var (
 //   - ErrFileNotFound
 //   - ErrIncorrectFormat
 //   - Other file operation or decoding errors
-func (c *Client) GetFromFile(ctx context.Context, path string, opts ...Option) (*image.RGBA, error) {
+func (c *Client) GetFromFile(ctx context.Context, path string, opts ...Option) (image.Image, error) {
 	ext := filepath.Ext(path)
 	if !validate.ContentType(ext, ".png", ".jpg", ".jpeg", ".webp") {
 		return nil, fmt.Errorf("%w: %s", ErrIncorrectFormat, ext)
@@ -127,7 +127,7 @@ func (c *Client) GetFromFile(ctx context.Context, path string, opts ...Option) (
 //   - ErrPageNotFound
 //   - ErrIncorrectFormat
 //   - Other network or decoding errors
-func (c *Client) GetFromWebsite(ctx context.Context, url string, opts ...Option) (*image.RGBA, error) {
+func (c *Client) GetFromWebsite(ctx context.Context, url string, opts ...Option) (image.Image, error) {
 	if !validate.URL(url) {
 		return nil, ErrIncorrectUrl
 	}
@@ -186,7 +186,7 @@ func (c *Client) GetFromWebsite(ctx context.Context, url string, opts ...Option)
 // Returns:
 //   - *image.RGBA: ASCII art image
 //   - error: Context cancellation or processing errors
-func (c *Client) GetFromImage(ctx context.Context, img image.Image, opts ...Option) (*image.RGBA, error) {
+func (c *Client) GetFromImage(ctx context.Context, img image.Image, opts ...Option) (image.Image, error) {
 
 	ptrOpts := &c.defaultOpts
 
