@@ -18,12 +18,17 @@ type Color struct {
 	_Type imageType
 }
 
+var (
+	grayBlack = color.Gray{Y: 0x00}
+	grayWhite = color.Gray{Y: 0xFF}
+)
+
 // DefaultColor returns the standard color scheme:
 //   - Black text on white background
 func DefaultColor() Color {
 	return Color{
-		Face:       color.Black,
-		Background: color.White,
+		Face:       grayBlack,
+		Background: grayWhite,
 	}
 }
 
@@ -34,9 +39,9 @@ func DefaultColor() Color {
 //   - Ensures foreground and background aren't identical
 //   - Automatically generates complementary colors when needed
 func (c *Color) validate() {
-	if c.Face == color.Black && c.Background == color.White ||
-		c.Face == color.White && c.Background == color.Black {
-		c._Type = imageTypeGray16
+	if c.Face == grayBlack && c.Background == grayWhite ||
+		c.Face == grayWhite && c.Background == grayBlack {
+		c._Type = imageTypeGray
 		return
 	}
 
@@ -47,9 +52,9 @@ func (c *Color) validate() {
 
 	switch {
 	case faceIsNil && backGroundIsNil:
-		c.Face = color.Black
-		c.Background = color.White
-		c._Type = imageTypeGray16
+		c.Face = grayBlack
+		c.Background = grayWhite
+		c._Type = imageTypeGray
 		return
 
 	case faceIsNil:
@@ -77,12 +82,12 @@ func colorIsNil(c color.Color) bool {
 
 // complementaryColor generates an opposite color for maximum contrast.
 func complementaryColor(c color.Color) color.Color {
-	if v, ok := c.(color.Gray16); ok {
+	if v, ok := c.(color.Gray); ok {
 		switch v {
-		case color.White:
-			return color.Black
-		case color.Black:
-			return color.White
+		case grayWhite:
+			return grayBlack
+		case grayBlack:
+			return grayWhite
 		}
 	}
 
