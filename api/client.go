@@ -48,8 +48,12 @@ func NewDefaultClient() *Client {
 	}
 }
 
-func (c *Client) WithOptions(opts *Options) *Client {
-	c.defaultOpts = *opts
+func (c *Client) WithOptions(opts_ptr *Options) *Client {
+	opts := *opts_ptr
+
+	opts.validate()
+
+	c.defaultOpts = opts
 	return c
 }
 
