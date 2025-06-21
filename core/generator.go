@@ -42,7 +42,7 @@ func GenerateASCIIImage(ctx context.Context, img image.Image, opts_ptr *Options)
 	bounds := img.Bounds()
 
 	outputWidth := bounds.Max.X * (10 / opts.PixelRatio.X)
-	outputHeight := bounds.Max.Y * (10 / opts.PixelRatio.X)
+	outputHeight := bounds.Max.Y * (10 / opts.PixelRatio.Y)
 	asciiImg := opts.Color._Type.createDrawImage(outputWidth, outputHeight)
 
 	lenAsciiLine := bounds.Max.X / opts.PixelRatio.X
