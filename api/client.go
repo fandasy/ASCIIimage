@@ -80,7 +80,7 @@ var (
 //   - opts: Optional conversion settings
 //
 // Returns:
-//   - *image.RGBA: ASCII art image
+//   - image.Image: ASCII art image
 //   - error: Possible errors:
 //   - ErrFileNotFound
 //   - ErrIncorrectFormat
@@ -125,7 +125,7 @@ func (c *Client) GetFromFile(ctx context.Context, path string, opts ...Option) (
 //   - opts: Optional conversion settings
 //
 // Returns:
-//   - *image.RGBA: ASCII art image
+//   - image.Image: ASCII art image
 //   - error: Possible errors:
 //   - ErrIncorrectUrl
 //   - ErrPageNotFound
@@ -188,7 +188,7 @@ func (c *Client) GetFromWebsite(ctx context.Context, url string, opts ...Option)
 //   - opts: Optional conversion settings
 //
 // Returns:
-//   - *image.RGBA: ASCII art image
+//   - image.Image: ASCII art image
 //   - error: Context cancellation or processing errors
 func (c *Client) GetFromImage(ctx context.Context, img image.Image, opts ...Option) (image.Image, error) {
 

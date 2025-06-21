@@ -32,7 +32,7 @@ var Face = func() *basicfont.Face {
 //   - opts: Conversion options (character set, pixel ratio, color)
 //
 // Returns:
-//   - *image.RGBA: Image containing the ASCII art
+//   - image.Image: Image containing the ASCII art
 //   - error: Context cancellation error if operation was interrupted
 func GenerateASCIIImage(ctx context.Context, img image.Image, opts_ptr *Options) (image.Image, error) {
 	opts := *opts_ptr
