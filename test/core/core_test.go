@@ -73,14 +73,14 @@ func TestGenerateASCIIImage(t *testing.T) {
 		img       image.Image
 		opts      *core.Options
 		wantError bool
-		checkFn   func(*image.RGBA) bool
+		checkFn   func(image.Image) bool
 	}{
 		{
 			name:      "default options",
 			img:       img,
 			opts:      core.DefaultOptions(),
 			wantError: false,
-			checkFn: func(result *image.RGBA) bool {
+			checkFn: func(result image.Image) bool {
 				// Check basic properties
 				bounds := result.Bounds()
 				return bounds.Dx() == 20 && bounds.Dy() == 20 // 2x * 10px
@@ -93,7 +93,7 @@ func TestGenerateASCIIImage(t *testing.T) {
 				PixelRatio: core.PixelRatio{X: 2, Y: 1},
 			},
 			wantError: false,
-			checkFn: func(result *image.RGBA) bool {
+			checkFn: func(result image.Image) bool {
 				bounds := result.Bounds()
 				return bounds.Dx() == 10 && bounds.Dy() == 20 // (2/2)x * 10px, 2y * 10px
 			},
@@ -105,7 +105,7 @@ func TestGenerateASCIIImage(t *testing.T) {
 				Chars: core.NewChars("01"),
 			},
 			wantError: false,
-			checkFn: func(result *image.RGBA) bool {
+			checkFn: func(result image.Image) bool {
 				// Should only contain 0 or 1 characters
 				return true // Would need OCR or pixel analysis to verify
 			},
