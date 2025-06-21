@@ -30,6 +30,6 @@ type Info struct {
 func PackageInfo() Info {
 	return Info{
 		Name:    "github.com/fandasy/ASCIIimage/v2",
-		Version: "v2.2.2",
+		Version: "v2.2.3",
 	}
 }
