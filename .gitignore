@@ -1,2 +1,3 @@
 /.idea/
 /test/pprof/main.go
+/test/bench/main.go
