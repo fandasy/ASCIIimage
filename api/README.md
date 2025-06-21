@@ -72,7 +72,7 @@ client := api.NewClient(
 		MaxWidth:  500,  // 5000px (1 unit = 10px)
 		MaxHeight: 300,  // 3000px
 		Compress:  30,   // 30% compression
-		Options:   coreOpts,
+		Core:      coreOpts,
 	},
 )
 
