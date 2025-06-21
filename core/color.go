@@ -15,7 +15,7 @@ type Color struct {
 	Background color.Color
 
 	// _Type defines what type of color.Color will be used when generating img
-	_Type imageType
+	_Type colorType
 }
 
 var (
@@ -41,7 +41,7 @@ func DefaultColor() Color {
 func (c *Color) validate() {
 	if c.Face == grayBlack && c.Background == grayWhite ||
 		c.Face == grayWhite && c.Background == grayBlack {
-		c._Type = imageTypeGray
+		c._Type = colorTypeGray
 		return
 	}
 
@@ -54,7 +54,7 @@ func (c *Color) validate() {
 	case faceIsNil && backGroundIsNil:
 		c.Face = grayBlack
 		c.Background = grayWhite
-		c._Type = imageTypeGray
+		c._Type = colorTypeGray
 		return
 
 	case faceIsNil:
