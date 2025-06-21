@@ -8,7 +8,7 @@ Complete Go solution for converting images to ASCII art with flexible configurat
 ## Features
 
 - **Multiple input sources** (files, URLs, raw images)
-- **Customizable output** (character sets, pixel ratios)
+- **Customizable output** (character sets, pixel ratios, colors)
 - **Image processing** (resizing, compression)
 - **Context-aware** operations
 
