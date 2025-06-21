@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/fandasy/ASCIIimage/v2/core"
-	"github.com/fandasy/ASCIIimage/v2/validate"
+	"github.com/fandasy/ASCIIimage/v2/pkg/validate"
 	"golang.org/x/image/webp"
 	"image"
 	"image/jpeg"
