@@ -69,8 +69,19 @@ func (c *Color) validate() {
 		}
 	}
 
-	iType := getColorType(c.Face, c.Background)
-	c._Type = iType
+	cType := getColorType(c.Face, c.Background)
+	c._Type = cType
+
+	switch cType {
+	case colorTypeGray:
+		c.Face = colorToGray(c.Face)
+		c.Background = colorToGray(c.Background)
+	case colorTypeGray16:
+		c.Face = colorToGray16(c.Face)
+		c.Background = colorToGray16(c.Background)
+	default:
+		// ...
+	}
 }
 
 func colorIsNilPtr(c color.Color) (bool, bool) {
@@ -104,4 +115,36 @@ func complementaryColor(c color.Color) color.Color {
 		B: uint8(255 - uint(b>>8)),
 		A: uint8(a),
 	}
+}
+
+func colorToGray(c color.Color) color.Gray {
+	switch v := c.(type) {
+	case color.Gray:
+		return v
+	case *color.Gray:
+		return *v
+	}
+
+	r, g, b, _ := c.RGBA()
+
+	// (Rec. 709)
+	y := (19595*r + 38470*g + 7471*b + 1<<15) >> 16
+
+	return color.Gray{Y: uint8(y >> 8)}
+}
+
+func colorToGray16(c color.Color) color.Gray16 {
+	switch v := c.(type) {
+	case color.Gray16:
+		return v
+	case *color.Gray16:
+		return *v
+	}
+
+	r, g, b, _ := c.RGBA()
+
+	// (Rec. 709)
+	y := (19595*r + 38470*g + 7471*b + 1<<15) >> 16
+
+	return color.Gray16{Y: uint16(y)}
 }
