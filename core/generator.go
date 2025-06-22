@@ -7,6 +7,8 @@ import (
 	"golang.org/x/image/math/fixed"
 	"image"
 	"image/draw"
+
+	drawgray "github.com/fandasy/ASCIIimage/v2/pkg/draw-gray"
 )
 
 // Face provides a modified font for ASCII art rendering with:
@@ -39,6 +41,19 @@ func GenerateASCIIImage(ctx context.Context, img image.Image, opts_ptr *Options)
 
 	opts.validate()
 
+	switch opts.Color._Type {
+	case colorTypeGray, colorTypeGray16:
+		// image.Gray, image.Gray16
+		return generateASCIIImageToGray(ctx, img, &opts)
+
+	default:
+		// image.RGBA, image.RGBA64, image.NRGBA, image.NRGBA64
+		return generateASCIIImageToRGBA(ctx, img, &opts)
+	}
+}
+
+// generateASCIIImageToRGBA returns image.RGBA, image.RGBA64, image.NRGBA, image.NRGBA64
+func generateASCIIImageToRGBA(ctx context.Context, img image.Image, opts *Options) (image.Image, error) {
 	bounds := img.Bounds()
 
 	outputWidth := bounds.Max.X * (10 / opts.PixelRatio.X)
@@ -71,6 +86,51 @@ func GenerateASCIIImage(ctx context.Context, img image.Image, opts_ptr *Options)
 
 		point := fixed.Point26_6{X: fixed.I(0), Y: fixed.I(scaledY)}
 		d := &font.Drawer{
+			Dst:  asciiImg,
+			Src:  image.NewUniform(opts.Color.Face),
+			Face: Face,
+			Dot:  point,
+		}
+		d.DrawBytes(asciiLine)
+	}
+
+	return asciiImg, nil
+}
+
+// generateASCIIImageToGray returns image.Gray, image.Gray16
+func generateASCIIImageToGray(ctx context.Context, img image.Image, opts *Options) (image.Image, error) {
+	bounds := img.Bounds()
+
+	outputWidth := bounds.Max.X * (10 / opts.PixelRatio.X)
+	outputHeight := bounds.Max.Y * (10 / opts.PixelRatio.Y)
+	asciiImg := opts.Color._Type.createDrawImage(outputWidth, outputHeight)
+
+	lenAsciiLine := bounds.Max.X / opts.PixelRatio.X
+	asciiLineBuf := make([]byte, 0, lenAsciiLine)
+
+	drawgray.Draw(asciiImg, asciiImg.Bounds(), &image.Uniform{C: opts.Color.Background}, image.Point{})
+
+	for y := bounds.Min.Y; y < bounds.Max.Y; y += opts.PixelRatio.Y {
+		select {
+		case <-ctx.Done():
+			return asciiImg, ctx.Err()
+		default:
+		}
+
+		asciiLine := asciiLineBuf[:0]
+
+		for x := bounds.Min.X; x < bounds.Max.X; x += opts.PixelRatio.X {
+			r, g, b, _ := img.At(x, y).RGBA()
+
+			brightness := (r>>8 + g>>8 + b>>8) / 3
+
+			asciiLine = append(asciiLine, opts.Chars[brightness])
+		}
+
+		scaledY := (y / opts.PixelRatio.Y) * 10
+
+		point := fixed.Point26_6{X: fixed.I(0), Y: fixed.I(scaledY)}
+		d := &drawgray.Drawer{
 			Dst:  asciiImg,
 			Src:  image.NewUniform(opts.Color.Face),
 			Face: Face,
