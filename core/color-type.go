@@ -53,17 +53,25 @@ func getColorType(c1, c2 color.Color) colorType {
 
 func getSingleColorType(c color.Color) (isGray bool, hasAlpha bool, bitDepth uint) {
 	switch v := c.(type) {
-	case color.Gray:
+	case color.Gray, *color.Gray:
 		return true, false, 8
-	case color.Gray16:
+	case color.Gray16, *color.Gray16:
 		return true, false, 16
 	case color.RGBA:
 		return v.R == v.G && v.G == v.B, false, 8
+	case *color.RGBA:
+		return v.R == v.G && v.G == v.B, false, 8
 	case color.RGBA64:
+		return v.R == v.G && v.G == v.B, false, 16
+	case *color.RGBA64:
 		return v.R == v.G && v.G == v.B, false, 16
 	case color.NRGBA:
 		return v.R == v.G && v.G == v.B, v.A != 255, 8
+	case *color.NRGBA:
+		return v.R == v.G && v.G == v.B, v.A != 255, 8
 	case color.NRGBA64:
+		return v.R == v.G && v.G == v.B, v.A != 65535, 16
+	case *color.NRGBA64:
 		return v.R == v.G && v.G == v.B, v.A != 65535, 16
 	default:
 		r, g, b, a := c.RGBA()

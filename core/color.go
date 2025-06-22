@@ -46,8 +46,8 @@ func (c *Color) validate() {
 	}
 
 	var (
-		faceIsNil       = colorIsNil(c.Face)
-		backGroundIsNil = colorIsNil(c.Background)
+		faceIsNil, _       = colorIsNilPtr(c.Face)
+		backGroundIsNil, _ = colorIsNilPtr(c.Background)
 	)
 
 	switch {
@@ -73,11 +73,17 @@ func (c *Color) validate() {
 	c._Type = iType
 }
 
-func colorIsNil(c color.Color) bool {
-	return c == nil || func() bool {
-		v := reflect.ValueOf(c)
-		return v.Kind() == reflect.Ptr && v.IsNil()
-	}()
+func colorIsNilPtr(c color.Color) (bool, bool) {
+	isNil := c == nil
+	if isNil {
+		return isNil, true
+	}
+
+	v := reflect.ValueOf(c)
+	isPtr := v.Kind() == reflect.Ptr
+	isNil = isPtr && v.IsNil()
+
+	return isNil, isPtr
 }
 
 // complementaryColor generates an opposite color for maximum contrast.
