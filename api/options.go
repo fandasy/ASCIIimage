@@ -64,6 +64,16 @@ func (o *Options) WithPixelRatio(x, y int) *Options {
 	return o
 }
 
+func (o *Options) WithPixelRatioX(x int) *Options {
+	o.Core.PixelRatio.X = x
+	return o
+}
+
+func (o *Options) WithPixelRatioY(y int) *Options {
+	o.Core.PixelRatio.Y = y
+	return o
+}
+
 func (o *Options) WithChars(c *core.Chars) *Options {
 	o.Core.Chars = c
 	return o
@@ -127,6 +137,18 @@ func WithMaxHeight(maxHeight uint) Option {
 func WithPixelRatio(x, y int) Option {
 	return func(opts *Options) {
 		opts.Core.PixelRatio = core.PixelRatio{X: x, Y: y}
+	}
+}
+
+func WithPixelRatioX(x int) Option {
+	return func(opts *Options) {
+		opts.Core.PixelRatio.X = x
+	}
+}
+
+func WithPixelRatioY(y int) Option {
+	return func(opts *Options) {
+		opts.Core.PixelRatio.Y = y
 	}
 }
 

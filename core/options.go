@@ -34,6 +34,16 @@ func (o *Options) WithPixelRatio(x, y int) *Options {
 	return o
 }
 
+func (o *Options) WithPixelRatioX(x int) *Options {
+	o.PixelRatio.X = x
+	return o
+}
+
+func (o *Options) WithPixelRatioY(y int) *Options {
+	o.PixelRatio.Y = y
+	return o
+}
+
 func (o *Options) WithChars(c *Chars) *Options {
 	o.Chars = c
 	return o
