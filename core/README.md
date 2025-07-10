@@ -6,7 +6,7 @@ Core package for converting images to ASCII art in Go. Provides flexible configu
 
 - Configurable pixel-to-character ratio
 - Customizable character sets
-- Set the color scheme for symbols and background
+- Set the color scheme for symbols and background, or keep the original colors
 - Context-aware processing
 
 ## Usage
@@ -89,14 +89,18 @@ type PixelRatio struct {
     X, Y int
 }
 
-// Color represents a pair of foreground and background colors for ASCII art rendering.
-// It ensures proper contrast between text and background.
+// Color represents color configuration for ASCII art rendering
+//   - It ensures proper contrast between text (ascii char) and background
+//   - When Original is true, it preserves the original pixel colors in output
 type Color struct {
     // Face is the foreground/text color
     Face color.Color
     
     // Background is the canvas/background color
     Background color.Color
+
+    // Original preserves the source image colors
+    Original bool
 }
 ```
 
