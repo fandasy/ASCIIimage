@@ -1,3 +1,9 @@
+// Package draw_gray provides optimized drawing operations for grayscale images.
+//
+// # This is an internal implementation package that handles specialized grayscale composition operations
+//
+// WARNING: This package is not intended for external use. The API may change without notice.
+// Use the implementation from go packages.
 package draw_gray
 
 import (
