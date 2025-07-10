@@ -42,7 +42,7 @@ func GenerateASCIIImage(ctx context.Context, img image.Image, opts_ptr *Options)
 
 	opts.validate()
 
-	if opts.Color.Original {
+	if opts.Color.OriginalFace {
 		// Drawing while preserving the original pixel color
 		return generateASCIIImageWithOriginalColor(ctx, img, &opts)
 	}

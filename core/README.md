@@ -91,7 +91,7 @@ type PixelRatio struct {
 
 // Color represents color configuration for ASCII art rendering
 //   - It ensures proper contrast between text (ascii char) and background
-//   - When Original is true, it preserves the original pixel colors in output
+//   - When OriginalFace is true, it preserves the original pixel colors in output
 type Color struct {
     // Face is the foreground/text color
     Face color.Color
@@ -99,8 +99,8 @@ type Color struct {
     // Background is the canvas/background color
     Background color.Color
 
-    // Original preserves the source image colors
-    Original bool
+    // OriginalFace preserves the source image colors
+    OriginalFace bool
 }
 ```
 

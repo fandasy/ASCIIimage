@@ -196,7 +196,7 @@ func WithBackgroundColor(c color.Color) Option {
 // When enabled, output will retain source image colors.
 func WithOriginalColor(b bool) Option {
 	return func(opts *Options) {
-		opts.Core.Color.Original = b
+		opts.Core.Color.OriginalFace = b
 	}
 }
 

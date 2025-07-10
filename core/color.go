@@ -7,17 +7,17 @@ import (
 
 // Color represents color configuration for ASCII art rendering
 //   - It ensures proper contrast between text (ascii char) and background
-//   - When Original is true, it preserves the original pixel colors in output
+//   - When OriginalFace is true, it preserves the original pixel colors in output
 type Color struct {
 	// Face is the foreground/text color
-	//  Ignored when Original is true.
+	//  Ignored when OriginalFace is true.
 	Face color.Color
 
 	// Background is the canvas/background color
 	Background color.Color
 
-	// Original preserves the source image colors
-	Original bool
+	// OriginalFace preserves the source image colors
+	OriginalFace bool
 
 	// _Type caches the color model type for optimization.
 	// Specifies the minimum color type to generate an image.
@@ -31,25 +31,25 @@ var (
 
 // DefaultColor returns the standard color scheme:
 //   - Black text on white background
-//   - Original colors disabled (false)
+//   - OriginalFace colors disabled (false)
 //   - Uses grayscale colors for optimization
 func DefaultColor() Color {
 	return Color{
-		Face:       grayBlack,
-		Background: grayWhite,
-		Original:   false,
+		Face:         grayBlack,
+		Background:   grayWhite,
+		OriginalFace: false,
 	}
 }
 
 // validate ensures proper color configuration,
 // It handles several special cases:
-//   - When Original is true, only validates background
+//   - When OriginalFace is true, only validates background
 //   - Enforces contrast between Face and Background
 //   - Replaces nil colors with complements
 //   - Prevents identical Face/Background
 //   - Converts colors to optimal format (_Type)
 func (c *Color) validate() {
-	if c.Original {
+	if c.OriginalFace {
 		backGroundIsNil, _ := colorIsNilPtr(c.Background)
 		if backGroundIsNil {
 			c.Background = grayWhite

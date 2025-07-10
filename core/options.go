@@ -65,7 +65,7 @@ func (o *Options) WithBackgroundColor(c color.Color) *Options {
 }
 
 func (o *Options) WithOriginalColor(b bool) *Options {
-	o.Color.Original = b
+	o.Color.OriginalFace = b
 	return o
 }
 
