@@ -192,6 +192,14 @@ func WithBackgroundColor(c color.Color) Option {
 	}
 }
 
+// WithOriginalColor enables/disables original color preservation.
+// When enabled, output will retain source image colors.
+func WithOriginalColor(b bool) Option {
+	return func(opts *Options) {
+		opts.Core.Color.Original = b
+	}
+}
+
 // validate ensures option fields have valid values, setting defaults when needed.
 func (o *Options) validate() {
 	if o.Compress < 0 || o.Compress > 99 {

@@ -64,6 +64,11 @@ func (o *Options) WithBackgroundColor(c color.Color) *Options {
 	return o
 }
 
+func (o *Options) WithOriginalColor(b bool) *Options {
+	o.Color.Original = b
+	return o
+}
+
 // validate ensures the options have valid values, setting defaults where needed
 func (o *Options) validate() {
 	o.PixelRatio.validate()
