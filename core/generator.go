@@ -6,6 +6,7 @@ import (
 	"golang.org/x/image/font/basicfont"
 	"golang.org/x/image/math/fixed"
 	"image"
+	"image/color"
 	"image/draw"
 
 	drawgray "github.com/fandasy/ASCIIimage/v2/pkg/draw-gray"
@@ -25,7 +26,7 @@ var Face = func() *basicfont.Face {
 	return face
 }()
 
-// GenerateASCIIImage converts an image to ASCII art rendered on an image.RGBA.
+// GenerateASCIIImage converts an image to ASCII art.
 // The conversion can be canceled using the provided context.
 //
 // Parameters:
@@ -40,6 +41,11 @@ func GenerateASCIIImage(ctx context.Context, img image.Image, opts_ptr *Options)
 	opts := *opts_ptr
 
 	opts.validate()
+
+	if opts.Color.Original {
+		// Drawing while preserving the original pixel color
+		return generateASCIIImageWithOriginalColor(ctx, img, &opts)
+	}
 
 	switch opts.Color._Type {
 	case colorTypeGray, colorTypeGray16:
@@ -137,6 +143,88 @@ func generateASCIIImageToGray(ctx context.Context, img image.Image, opts *Option
 			Dot:  point,
 		}
 		d.DrawBytes(asciiLine)
+	}
+
+	return asciiImg, nil
+}
+
+// generateASCIIImageWithOriginalColor Drawing while preserving the original pixel color
+func generateASCIIImageWithOriginalColor(ctx context.Context, img image.Image, opts *Options) (image.Image, error) {
+	bounds := img.Bounds()
+
+	outputWidth := bounds.Max.X * (10 / opts.PixelRatio.X)
+	outputHeight := bounds.Max.Y * (10 / opts.PixelRatio.Y)
+	asciiImg := image.NewRGBA(image.Rect(0, 0, outputWidth, outputHeight))
+
+	draw.Draw(asciiImg, asciiImg.Bounds(), &image.Uniform{C: opts.Color.Background}, image.Point{}, draw.Src)
+
+	for y := bounds.Min.Y; y < bounds.Max.Y; y += opts.PixelRatio.Y {
+		select {
+		case <-ctx.Done():
+			return asciiImg, ctx.Err()
+		default:
+		}
+
+		scaledY := (y / opts.PixelRatio.Y) * 10
+
+		var (
+			// RGBA
+			xr, xg, xb, xa uint32
+
+			scaledX int
+			startX  int
+			colorX  color.Color
+
+			buf []byte
+		)
+
+		for x := bounds.Min.X; x < bounds.Max.X; x += opts.PixelRatio.X {
+			c := img.At(x, y)
+			r, g, b, a := c.RGBA()
+
+			brightness := (r>>8 + g>>8 + b>>8) / 3
+
+			char := opts.Chars[brightness]
+
+			// first initialization
+			if colorX == nil {
+				colorX = c
+				buf = append(buf, char)
+				startX = x
+				continue
+			}
+
+			if r == xr && g == xg && b == xb && a == xa {
+				buf = append(buf, char)
+			} else {
+				// draw previous segment
+				scaledX = (startX / opts.PixelRatio.X) * 10
+				d := &font.Drawer{
+					Dst:  asciiImg,
+					Src:  image.NewUniform(colorX),
+					Face: Face,
+					Dot:  fixed.Point26_6{X: fixed.I(scaledX), Y: fixed.I(scaledY)},
+				}
+				d.DrawBytes(buf)
+
+				// reset
+				colorX = c
+				buf = []byte{char}
+				startX = x
+			}
+		}
+
+		// draw the remaining
+		if len(buf) > 0 {
+			scaledX = (startX / opts.PixelRatio.X) * 10
+			d := &font.Drawer{
+				Dst:  asciiImg,
+				Src:  image.NewUniform(colorX),
+				Face: Face,
+				Dot:  fixed.Point26_6{X: fixed.I(scaledX), Y: fixed.I(scaledY)},
+			}
+			d.DrawBytes(buf)
+		}
 	}
 
 	return asciiImg, nil
