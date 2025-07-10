@@ -5,16 +5,22 @@ import (
 	"reflect"
 )
 
-// Color represents a pair of foreground and background colors for ASCII art rendering.
-// It ensures proper contrast between text and background.
+// Color represents color configuration for ASCII art rendering
+//   - It ensures proper contrast between text (ascii char) and background
+//   - When Original is true, it preserves the original pixel colors in output
 type Color struct {
 	// Face is the foreground/text color
+	//  Ignored when Original is true.
 	Face color.Color
 
 	// Background is the canvas/background color
 	Background color.Color
 
-	// _Type defines what type of color.Color will be used when generating img
+	// Original preserves the source image colors
+	Original bool
+
+	// _Type caches the color model type for optimization.
+	// Specifies the minimum color type to generate an image.
 	_Type colorType
 }
 
@@ -25,62 +31,74 @@ var (
 
 // DefaultColor returns the standard color scheme:
 //   - Black text on white background
+//   - Original colors disabled (false)
+//   - Uses grayscale colors for optimization
 func DefaultColor() Color {
 	return Color{
 		Face:       grayBlack,
 		Background: grayWhite,
+		Original:   false,
 	}
 }
 
-// validate ensures the color combination meets contrast requirements.
+// validate ensures proper color configuration,
 // It handles several special cases:
-//   - Preserves standard black/white or white/black combinations
-//   - Replaces nil colors with complementary colors
-//   - Ensures foreground and background aren't identical
-//   - Automatically generates complementary colors when needed
+//   - When Original is true, only validates background
+//   - Enforces contrast between Face and Background
+//   - Replaces nil colors with complements
+//   - Prevents identical Face/Background
+//   - Converts colors to optimal format (_Type)
 func (c *Color) validate() {
-	if c.Face == grayBlack && c.Background == grayWhite ||
-		c.Face == grayWhite && c.Background == grayBlack {
-		c._Type = colorTypeGray
-		return
-	}
-
-	var (
-		faceIsNil, _       = colorIsNilPtr(c.Face)
-		backGroundIsNil, _ = colorIsNilPtr(c.Background)
-	)
-
-	switch {
-	case faceIsNil && backGroundIsNil:
-		c.Face = grayBlack
-		c.Background = grayWhite
-		c._Type = colorTypeGray
-		return
-
-	case faceIsNil:
-		c.Face = complementaryColor(c.Background)
-
-	case backGroundIsNil:
-		c.Background = complementaryColor(c.Face)
-
-	default:
-		if c.Face == c.Background {
-			c.Face = complementaryColor(c.Background)
+	if c.Original {
+		backGroundIsNil, _ := colorIsNilPtr(c.Background)
+		if backGroundIsNil {
+			c.Background = grayWhite
 		}
-	}
 
-	cType := getColorType(c.Face, c.Background)
-	c._Type = cType
+	} else {
+		if c.Face == grayBlack && c.Background == grayWhite ||
+			c.Face == grayWhite && c.Background == grayBlack {
+			c._Type = colorTypeGray
+			return
+		}
 
-	switch cType {
-	case colorTypeGray:
-		c.Face = colorToGray(c.Face)
-		c.Background = colorToGray(c.Background)
-	case colorTypeGray16:
-		c.Face = colorToGray16(c.Face)
-		c.Background = colorToGray16(c.Background)
-	default:
-		// ...
+		var (
+			faceIsNil, _       = colorIsNilPtr(c.Face)
+			backGroundIsNil, _ = colorIsNilPtr(c.Background)
+		)
+
+		switch {
+		case faceIsNil && backGroundIsNil:
+			c.Face = grayBlack
+			c.Background = grayWhite
+			c._Type = colorTypeGray
+			return
+
+		case faceIsNil:
+			c.Face = complementaryColor(c.Background)
+
+		case backGroundIsNil:
+			c.Background = complementaryColor(c.Face)
+
+		default:
+			if c.Face == c.Background {
+				c.Face = complementaryColor(c.Background)
+			}
+		}
+
+		cType := getColorType(c.Face, c.Background)
+		c._Type = cType
+
+		switch cType {
+		case colorTypeGray:
+			c.Face = colorToGray(c.Face)
+			c.Background = colorToGray(c.Background)
+		case colorTypeGray16:
+			c.Face = colorToGray16(c.Face)
+			c.Background = colorToGray16(c.Background)
+		default:
+			// ...
+		}
 	}
 }
 
