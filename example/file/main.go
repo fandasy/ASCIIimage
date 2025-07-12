@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"github.com/fandasy/ASCIIimage/v2/api"
 	"image"
-	"image/jpeg"
+	"image/png"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 )
@@ -15,14 +16,21 @@ const (
 	filepath_1 = "example/image/valid-img-1.jpg"
 	filepath_2 = "example/image/valid-img-2.jpg"
 
-	filename_1 = "save-1.jpg"
-	filename_2 = "save-2.jpg"
+	filename_1 = "save-1.png"
+	filename_2 = "save-2.png"
 
 	outputDir = "example/file"
 )
 
 func main() {
-	client := api.NewDefaultClient()
+	httpClient := http.DefaultClient
+
+	opts := api.DefaultOptions()
+
+	client := api.NewClient(
+		httpClient,
+		opts,
+	)
 
 	img_1, err := client.GetFromFile(context.TODO(), filepath_1)
 	if err != nil {
@@ -56,7 +64,7 @@ func saveImage(path string, img image.Image) error {
 	}
 	defer file.Close()
 
-	if err := jpeg.Encode(file, img, nil); err != nil {
+	if err := png.Encode(file, img); err != nil {
 		return fmt.Errorf("failed to encode image to JPEG: %v", err)
 	}
 
