@@ -42,13 +42,16 @@ func GenerateASCIIImage(ctx context.Context, img image.Image, opts_ptr *Options)
 
 	opts.validate()
 
-	if opts.Color.OriginalFace {
+	switch {
+	case opts.Color.OriginalFace:
 		// Drawing while preserving the original pixel color
 		return generateASCIIImageWithOriginalColor(ctx, img, &opts)
-	}
 
-	switch opts.Color._Type {
-	case colorTypeGray, colorTypeGray16:
+	case opts.Color.TransparentBackground:
+		// For a transparent background will need an alpha channel
+		return generateASCIIImageToRGBA(ctx, img, &opts)
+
+	case opts.Color.isGray():
 		// image.Gray, image.Gray16
 		return generateASCIIImageToGray(ctx, img, &opts)
 
@@ -64,12 +67,14 @@ func generateASCIIImageToRGBA(ctx context.Context, img image.Image, opts *Option
 
 	outputWidth := bounds.Max.X * (10 / opts.PixelRatio.X)
 	outputHeight := bounds.Max.Y * (10 / opts.PixelRatio.Y)
-	asciiImg := opts.Color._Type.createDrawImage(outputWidth, outputHeight)
+	asciiImg := opts.Color.createDrawImage(outputWidth, outputHeight)
 
 	lenAsciiLine := bounds.Max.X / opts.PixelRatio.X
 	asciiLineBuf := make([]byte, 0, lenAsciiLine)
 
-	draw.Draw(asciiImg, asciiImg.Bounds(), &image.Uniform{C: opts.Color.Background}, image.Point{}, draw.Src)
+	if !opts.Color.TransparentBackground {
+		draw.Draw(asciiImg, asciiImg.Bounds(), &image.Uniform{C: opts.Color.Background}, image.Point{}, draw.Src)
+	}
 
 	for y := bounds.Min.Y; y < bounds.Max.Y; y += opts.PixelRatio.Y {
 		select {
@@ -109,10 +114,12 @@ func generateASCIIImageToGray(ctx context.Context, img image.Image, opts *Option
 
 	outputWidth := bounds.Max.X * (10 / opts.PixelRatio.X)
 	outputHeight := bounds.Max.Y * (10 / opts.PixelRatio.Y)
-	asciiImg := opts.Color._Type.createDrawImage(outputWidth, outputHeight)
+	asciiImg := opts.Color.createDrawImage(outputWidth, outputHeight)
 
 	lenAsciiLine := bounds.Max.X / opts.PixelRatio.X
 	asciiLineBuf := make([]byte, 0, lenAsciiLine)
+
+	// I don't check opts.Color.TransparentBackground because transparent background requires alpha channel
 
 	drawgray.Draw(asciiImg, asciiImg.Bounds(), &image.Uniform{C: opts.Color.Background}, image.Point{})
 
@@ -154,9 +161,11 @@ func generateASCIIImageWithOriginalColor(ctx context.Context, img image.Image, o
 
 	outputWidth := bounds.Max.X * (10 / opts.PixelRatio.X)
 	outputHeight := bounds.Max.Y * (10 / opts.PixelRatio.Y)
-	asciiImg := image.NewRGBA(image.Rect(0, 0, outputWidth, outputHeight))
+	asciiImg := opts.Color.createDrawImage(outputWidth, outputHeight)
 
-	draw.Draw(asciiImg, asciiImg.Bounds(), &image.Uniform{C: opts.Color.Background}, image.Point{}, draw.Src)
+	if !opts.Color.TransparentBackground {
+		draw.Draw(asciiImg, asciiImg.Bounds(), &image.Uniform{C: opts.Color.Background}, image.Point{}, draw.Src)
+	}
 
 	for y := bounds.Min.Y; y < bounds.Max.Y; y += opts.PixelRatio.Y {
 		select {
