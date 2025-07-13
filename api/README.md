@@ -151,6 +151,9 @@ func WithFaceColor(c color.Color) Option
 // WithBackgroundColor sets only the background color for ASCII art.
 func WithBackgroundColor(c color.Color) Option
 
+WithTransparentBackground enables/disables transparent background.
+func WithTransparentBackground(b bool) Option
+
 // WithOriginalColor enables/disables original color preservation.
 func WithOriginalColor(b bool) Option
 ```

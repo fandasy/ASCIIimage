@@ -192,6 +192,14 @@ func WithBackgroundColor(c color.Color) Option {
 	}
 }
 
+// WithTransparentBackground enables/disables transparent background.
+// When enabled, the output will be images without background.
+func WithTransparentBackground(b bool) Option {
+	return func(opts *Options) {
+		opts.Core.Color.TransparentBackground = b
+	}
+}
+
 // WithOriginalColor enables/disables original color preservation.
 // When enabled, output will retain source image colors.
 func WithOriginalColor(b bool) Option {
