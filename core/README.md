@@ -99,6 +99,9 @@ type Color struct {
     // Background is the canvas/background color
     Background color.Color
 
+    // TransparentBackground removes the background
+    TransparentBackground bool
+
     // OriginalFace preserves the source image colors
     OriginalFace bool
 }
