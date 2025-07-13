@@ -1,7 +1,9 @@
 package core
 
 import (
+	"image"
 	"image/color"
+	"image/draw"
 	"reflect"
 )
 
@@ -15,6 +17,9 @@ type Color struct {
 
 	// Background is the canvas/background color
 	Background color.Color
+
+	// TransparentBackground removes the background
+	TransparentBackground bool
 
 	// OriginalFace preserves the source image colors
 	OriginalFace bool
@@ -31,13 +36,15 @@ var (
 
 // DefaultColor returns the standard color scheme:
 //   - Black text on white background
+//   - TransparentBackground disabled (false)
 //   - OriginalFace colors disabled (false)
 //   - Uses grayscale colors for optimization
 func DefaultColor() Color {
 	return Color{
-		Face:         grayBlack,
-		Background:   grayWhite,
-		OriginalFace: false,
+		Face:                  grayBlack,
+		Background:            grayWhite,
+		TransparentBackground: false,
+		OriginalFace:          false,
 	}
 }
 
@@ -49,13 +56,13 @@ func DefaultColor() Color {
 //   - Prevents identical Face/Background
 //   - Converts colors to optimal format (_Type)
 func (c *Color) validate() {
-	if c.OriginalFace {
-		backGroundIsNil, _ := colorIsNilPtr(c.Background)
-		if backGroundIsNil {
-			c.Background = grayWhite
-		}
+	var (
+		faceNeed       = !c.OriginalFace
+		backgroundNeed = !c.TransparentBackground
+	)
 
-	} else {
+	switch {
+	case faceNeed && backgroundNeed:
 		if c.Face == grayBlack && c.Background == grayWhite ||
 			c.Face == grayWhite && c.Background == grayBlack {
 			c._Type = colorTypeGray
@@ -86,7 +93,7 @@ func (c *Color) validate() {
 			}
 		}
 
-		cType := getColorType(c.Face, c.Background)
+		cType := getColorsType(c.Face, c.Background)
 		c._Type = cType
 
 		switch cType {
@@ -99,6 +106,60 @@ func (c *Color) validate() {
 		default:
 			// ...
 		}
+
+	case faceNeed:
+		faceIsNil, _ := colorIsNilPtr(c.Face)
+		if faceIsNil {
+			c.Face = grayBlack
+			c._Type = colorTypeGray
+		} else {
+			c._Type = getColorType(c.Face)
+		}
+
+	case backgroundNeed:
+		backGroundIsNil, _ := colorIsNilPtr(c.Background)
+		if backGroundIsNil {
+			c.Background = grayWhite
+			c._Type = colorTypeGray
+		} else {
+			c._Type = getColorType(c.Face)
+		}
+	}
+}
+
+func (c *Color) isGray() bool {
+	return c._Type == colorTypeGray || c._Type == colorTypeGray16
+}
+
+func (c *Color) createDrawImage(w, h int) draw.Image {
+	switch {
+	case c.TransparentBackground && c.OriginalFace:
+		return image.NewRGBA(image.Rect(0, 0, w, h))
+	case c.TransparentBackground:
+		return image.NewRGBA(image.Rect(0, 0, w, h))
+	case c.OriginalFace:
+		return image.NewRGBA(image.Rect(0, 0, w, h))
+	}
+
+	switch c._Type {
+	case colorTypeGray:
+		return image.NewGray(image.Rect(0, 0, w, h))
+	case colorTypeGray16:
+		return image.NewGray16(image.Rect(0, 0, w, h))
+	case colorTypeNRGBA:
+		return image.NewNRGBA(image.Rect(0, 0, w, h))
+	case colorTypeNRGBA64:
+		return image.NewNRGBA64(image.Rect(0, 0, w, h))
+	case colorTypeRGBA:
+		return image.NewRGBA(image.Rect(0, 0, w, h))
+	case colorTypeRGBA64:
+		return image.NewRGBA64(image.Rect(0, 0, w, h))
+	case colorTypeNRGBAc:
+		return image.NewNRGBA(image.Rect(0, 0, w, h))
+	case colorTypeNRGBA64c:
+		return image.NewNRGBA64(image.Rect(0, 0, w, h))
+	default:
+		return image.NewNRGBA64(image.Rect(0, 0, w, h))
 	}
 }
 

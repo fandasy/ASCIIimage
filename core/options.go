@@ -64,6 +64,11 @@ func (o *Options) WithBackgroundColor(c color.Color) *Options {
 	return o
 }
 
+func (o *Options) WithTransparentBackground(b bool) *Options {
+	o.Color.TransparentBackground = b
+	return o
+}
+
 func (o *Options) WithOriginalColor(b bool) *Options {
 	o.Color.OriginalFace = b
 	return o
